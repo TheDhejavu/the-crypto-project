@@ -49,7 +49,7 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 
 		fmt.Printf("\r%x", hash)
 		initHash.SetBytes(hash[:])
-		// fmt.Println("NONCE:\n", nonce)
+		
 		if initHash.Cmp(pow.Target) == -1 {
 			break
 		} else {

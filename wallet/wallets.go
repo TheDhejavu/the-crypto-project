@@ -10,15 +10,15 @@ import (
 	"os"
 )
 
-const walletsPath = "./tmp/wallets_%s.data"
+const walletsPath = "./tmp/wallets.data"
 
 type Wallets struct {
 	Wallets map[string]*Wallet
 }
 
-func InitializeWallets(nodeId string) (*Wallets, error) {
+func InitializeWallets() (*Wallets, error) {
 	wallets := Wallets{map[string]*Wallet{}}
-	err := wallets.LoadFile(nodeId)
+	err := wallets.LoadFile()
 
 	return &wallets, err
 
@@ -41,8 +41,8 @@ func (ws *Wallets) GetAllAddress() []string {
 	}
 	return addresses
 }
-func (ws *Wallets) LoadFile(nodeId string) error {
-	walletsFile := fmt.Sprintf(walletsPath, nodeId)
+func (ws *Wallets) LoadFile() error {
+	walletsFile := fmt.Sprintf(walletsPath)
 	
 	if _, err := os.Stat(walletsFile); os.IsNotExist(err) {
 		return err
@@ -64,7 +64,7 @@ func (ws *Wallets) LoadFile(nodeId string) error {
 
 	return nil
 }
-func (ws *Wallets) SaveFile(nodeId string) {
+func (ws *Wallets) SaveFile() {
 	var content bytes.Buffer
 
 	gob.Register(elliptic.P256())
@@ -74,7 +74,7 @@ func (ws *Wallets) SaveFile(nodeId string) {
 	if err != nil {
 		log.Panic(err)
 	}
-	walletsFile := fmt.Sprintf(walletsPath, nodeId)
+	walletsFile := fmt.Sprintf(walletsPath)
 	err = ioutil.WriteFile(walletsFile, content.Bytes(), 0644)
 	if err != nil {
 		log.Panic(err)

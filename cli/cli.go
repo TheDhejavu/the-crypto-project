@@ -63,9 +63,9 @@ func (cli *CommandLine) Send(from string, to string, amount int, nodeId string, 
 	defer chain.Database.Close()
 	utxos := blockchain.UXTOSet{chain}
 
-	wallets, err := wallet.InitializeWallets(nodeId)
+	wallets, err := wallet.InitializeWallets()
 	if err != nil {
-		log.Panic(err)
+		log.Panic(err)     
 	}
 
 	wallet := wallets.GetWallet(from)
@@ -128,10 +128,7 @@ func (cli *CommandLine) Run() {
 	cli.ValidateArgs()
 
 	nodeId := os.Getenv("NODE_ID")
-	if nodeId == "" {
-		fmt.Println("NODE_ID env is not set !", nodeId)
-		runtime.Goexit()
-	}
+
 	getBalanceCmd := flag.NewFlagSet("getbalance", flag.ExitOnError)
 	createBlockchainCmd := flag.NewFlagSet("createblockchain", flag.ExitOnError)
 	sendCmd := flag.NewFlagSet("send", flag.ExitOnError)
@@ -207,11 +204,11 @@ func (cli *CommandLine) Run() {
 	}
 
 	if createWalletCmd.Parsed() {
-		cli.CreateWallet(nodeId)
+		cli.CreateWallet()
 	}
 
 	if listAddressesCmd.Parsed() {
-		cli.ListAddresses(nodeId)
+		cli.ListAddresses()
 	}
 
 	if printChainCmd.Parsed() {
@@ -229,16 +226,16 @@ func (cli *CommandLine) Run() {
 
 }
 
-func (cli *CommandLine) CreateWallet(nodeId string) {
-	wallets, _ := wallet.InitializeWallets(nodeId)
+func (cli *CommandLine) CreateWallet() {
+	wallets, _ := wallet.InitializeWallets()
 	address := wallets.AddWallet()
-	wallets.SaveFile(nodeId)
+	wallets.SaveFile()
 
 	fmt.Println(address)
 }
 
-func (cli *CommandLine) ListAddresses(nodeId string) {
-	wallets, _ := wallet.InitializeWallets(nodeId)
+func (cli *CommandLine) ListAddresses() {
+	wallets, _ := wallet.InitializeWallets()
 	addresses := wallets.GetAllAddress()
 
 	for _, address := range addresses {

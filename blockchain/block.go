@@ -58,3 +58,15 @@ func DeSerialize(data []byte) *Block {
 	Handle(err)
 	return &block
 }
+
+func IsBlockValid(newBlock, oldBlock Block) bool {
+	if oldBlock.Height+1 != newBlock.Height {
+		return false
+	}
+	res := bytes.Compare(oldBlock.Hash, newBlock.PrevHash)
+	if res != 0 {
+		return false
+	}
+
+	return true
+}
