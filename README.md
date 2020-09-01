@@ -43,7 +43,7 @@ The wallet system, comparable to a bank account, contains a pair of public and p
 
 ### Uspent Transaction Output (UTXO) Model
 
-This concept is particularly famous with the bitcoin blockhain which is defined as an output of a blockchain transaction that has not been spent
+This concept is became really popualr due to the bitcoin blockhain which is defined as an output of a blockchain transaction that has not been spent
  They are available to be used in new transactions (as long as you can unlock them with your private key), which makes them useful. UTXOs is used as inputs when a user tries to send X amount of token to Y person given that the amount of UTXOs that the user can unlock is enough to be used as an input. Calculating a wallet address balance can be gotten by accumulating all the unspent transaction outputs that are locked to the particular address
  #### Why do we need this ?
  
