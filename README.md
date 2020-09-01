@@ -9,7 +9,7 @@ This is a blockchain project that implements some of the major feature of popula
 - [Golang](https://golang.org/)
 Go is an open source programming language that makes it easy to build simple, reliable, and efficient software.
 - [libp2p-go ](https://docs.libp2p.io/)
-- [   ](https://github.com/dgraph-io/badger)
+- [BadgerDB](https://github.com/dgraph-io/badger)
 BadgerDB is an embeddable, persistent and fast key-value (KV) database written in pure Go. 
 
 ## Terms
