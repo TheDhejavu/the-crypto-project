@@ -2,6 +2,7 @@
 # The Crypto Project
 This is a blockchain project that implements some of the major feature of popular cryptocurrency project like Bitcoin and ethereum using go programming language.
 
+#### NB: This project is for learning purposes and it contains detailed overview of how blockchain works, most importantly how this project works. You can checkout references to some major materials that plays important roles in making this project happen.
 
 # High-level Flow Diagram
 

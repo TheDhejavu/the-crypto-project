@@ -69,7 +69,7 @@ func (cli *CommandLine) Send(from string, to string, amount int, nodeId string, 
 	}
 
 	wallet := wallets.GetWallet(from)
-
+	
 	tx := blockchain.NewTransaction(&wallet, to, amount, &utxos)
 
 	if mineNow {
