@@ -6,13 +6,9 @@ This is a blockchain project that implements some of the major feature of popula
 # High-level Flow Diagram
 
 ## PereQuisite
-[Golang](https://golang.org/)
-
-Go is an open source programming language that makes it easy to build simple, reliable, and efficient software.
-[libp2p-go ](https://docs.libp2p.io/)
-[BadgerDB](https://github.com/dgraph-io/badger)
-
-BadgerDB is an embeddable, persistent and fast key-value (KV) database written in pure Go. 
+- [Golang](https://golang.org/)
+- [libp2p-go ](https://docs.libp2p.io/)
+- [BadgerDB](https://github.com/dgraph-io/badger)
 
 ## Terms
 - Blockchain
@@ -30,7 +26,6 @@ BadgerDB is an embeddable, persistent and fast key-value (KV) database written i
 |:-----------|:-------------------------------------------------|
 | `./p2p`    | Scripts for the crypto project nNetwork Layer    |
 | `./Binaries`| An on-demand Folder for executable E.G Wallet   |
-| `./docs`   | Source documentation files and doxygen config.   |
 | `./cli`    | CLI Scripts for interacting with the blockhain   |
 | `./api`    | Source code.                                     |
 
@@ -72,7 +67,7 @@ This concept is became really popualr due to the bitcoin blockhain which is defi
 - Data visualization
 - Node visualization
 - gRPC implementation for accessing blockchain data
-- Smart Contract (Maybe, 😃)
+- Smart Contract & VM (Maybe, 😃)
 
 ## References
 - [Blockchain Basic, A Non-technical guide](https://www.goodreads.com/book/show/34137265-blockchain-basics)
