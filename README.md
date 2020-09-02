@@ -1,17 +1,16 @@
 ![logo](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/cover.png)
 # The Crypto Project
-This is a blockchain project that implements some of the major feature of popular cryptocurrency project like Bitcoin and ethereum using go programming language.
 
-#### NB: This project is for learning purposes and it contains detailed overview of how blockchain works, most importantly how this project works. You can checkout references to some major materials that plays important roles in making this project happen.
+This is a blockchain project that implements some of the major feature of popular cryptocurrency project like Bitcoin and ethereum using go programming language. This an experimental project for learning purposes and it contains detailed overview of how blockchain works, most importantly how this project works. You can checkout references to some major materials that plays important roles in making this project happen.
 
 # High-level Flow Diagram
 
 ## PereQuisite
-- [Golang](https://golang.org/)
+[Golang](https://golang.org/)
 
 Go is an open source programming language that makes it easy to build simple, reliable, and efficient software.
-- [libp2p-go ](https://docs.libp2p.io/)
-- [BadgerDB](https://github.com/dgraph-io/badger)
+[libp2p-go ](https://docs.libp2p.io/)
+[BadgerDB](https://github.com/dgraph-io/badger)
 
 BadgerDB is an embeddable, persistent and fast key-value (KV) database written in pure Go. 
 
@@ -23,6 +22,17 @@ BadgerDB is an embeddable, persistent and fast key-value (KV) database written i
 - Uspent Transaction Output (UTXO)
 - Merkle Tree
 - Networking (P2P/Distributed System)
+
+
+### Repository Contents
+
+| Folder     | Contents                                         |
+|:-----------|:-------------------------------------------------|
+| `./p2p`    | Scripts for the crypto project nNetwork Layer    |
+| `./Binaries`| An on-demand Folder for executable E.G Wallet   |
+| `./docs`   | Source documentation files and doxygen config.   |
+| `./cli`    | CLI Scripts for interacting with the blockhain   |
+| `./api`    | Source code.                                     |
 
 ### Blockchain
 
@@ -65,7 +75,7 @@ This concept is became really popualr due to the bitcoin blockhain which is defi
 - Smart Contract (Maybe, 😃)
 
 ## References
--[Blockchain Basic, A Non-technical guide](https://www.goodreads.com/book/show/34137265-blockchain-basics)
+- [Blockchain Basic, A Non-technical guide](https://www.goodreads.com/book/show/34137265-blockchain-basics)
 - [MIT 6.824 Distributed Systems (Spring 2020)](https://www.youtube.com/playlist?list=PLrw6a1wE39_tb2fErI4-WkMbsvGQk9_UB)
 - [Code a simple P2P blockchain in Go!](https://medium.com/@mycoralhealth/code-a-simple-p2p-blockchain-in-go-46662601f417)
 - [Advanced Blockchain Concepts for Beginners](https://medium.com/@mycoralhealth/advanced-blockchain-concepts-for-beginners-32887202afad)
