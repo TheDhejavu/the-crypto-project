@@ -114,7 +114,7 @@ func NewTransaction(w *wallet.Wallet, to string, amount int, utxo *UXTOSet) *Tra
 			inputs = append(inputs, input)
 		}
 	}
-
+	
 	outputs = append(outputs, *NewTXOutput(amount, to))
 	if acc > amount {
 		outputs = append(outputs, *NewTXOutput(acc-amount, from))

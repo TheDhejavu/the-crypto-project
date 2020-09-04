@@ -3,7 +3,8 @@
 
 This is a blockchain project that implements some of the major feature of popular cryptocurrency project like Bitcoin and ethereum using go programming language. This an experimental project for learning purposes and it contains detailed overview of how blockchain works, most importantly how this project works. You can checkout references to some major materials that plays important roles in making this project happen.
 
-# High-level Flow Diagram
+# Flow Diagram
+![flow diagram](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/flow-diagram.png)
 
 ## PereQuisite
 - [Golang](https://golang.org/)
@@ -19,7 +20,6 @@ This is a blockchain project that implements some of the major feature of popula
 - Merkle Tree
 - Networking (P2P/Distributed System)
 
-
 ### Repository Contents
 
 | Folder     | Contents                                         |
@@ -30,6 +30,7 @@ This is a blockchain project that implements some of the major feature of popula
 | `./api`    | Source code.                                     |
 
 ### Blockchain
+Blockchain can be defined as a database that stores blocks, with every next block being linked to the previous one in a cryptographically secure way so that it’s not possible to change anything in previous blocks, it is a Decentralized system of Nodes that works in a co-ordinated way
 
 #### Interacting with the blockchain
 
@@ -49,7 +50,7 @@ The wallet system, comparable to a bank account, contains a pair of public and p
 
 ### Uspent Transaction Output (UTXO) Model
 
-This concept is became really popualr due to the bitcoin blockhain which is defined as an output of a blockchain transaction that has not been spent
+This concept became really popular due to the bitcoin blockhain and this can be defined as an output of a blockchain transaction that has not been spent
  They are available to be used in new transactions (as long as you can unlock them with your private key), which makes them useful. UTXOs is used as inputs when a user tries to send X amount of token to Y person given that the amount of UTXOs that the user can unlock is enough to be used as an input. Calculating a wallet address balance can be gotten by accumulating all the unspent transaction outputs that are locked to the particular address
  #### Why do we need this ?
  
@@ -65,8 +66,7 @@ This concept is became really popualr due to the bitcoin blockhain which is defi
 ## TODO
 
 - Data visualization
-- Node visualization
-- gRPC implementation for accessing blockchain data
+- gRPC implementation for interacting with the blockchain
 - Smart Contract & VM (Maybe, 😃)
 
 ## References
@@ -78,3 +78,5 @@ This concept is became really popualr due to the bitcoin blockhain which is defi
 - [MerkleTree](https://brilliant.org/wiki/merkle-tree/)
 - [BadgerDB](https://github.com/dgraph-io/badger)
 - [Wallet](https://en.wikipedia.org/wiki/Cryptocurrency_wallet)
+- [How Bitcoin Works under the Hood](https://www.youtube.com/watch?v=Lx9zgZCMqXE)
+- [What is the difference between decentralized and distributed systems?](https://medium.com/distributed-economy/what-is-the-difference-between-decentralized-and-distributed-systems-f4190a5c6462#:~:text=A%20decentralized%20system%20is%20a%20subset%20of%20a%20distributed%20system.&text=Decentralized%20means%20that%20there%20is,where%20the%20decision%20is%20made.&text=Distributed%20means%20that%20the%20processing,and%20use%20complete%20system%20knowledge.)
