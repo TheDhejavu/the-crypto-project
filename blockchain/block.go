@@ -13,12 +13,15 @@ type Block struct {
 	Transactions []*Transaction
 	Nonce        int
 	Height       int
+	MerkleRoot   []byte
+	Difficulty   int
 }
 
-func (b *Block) HashTransactions() []byte {
+// Use Merkle Tree to hash Transactions
+func (block *Block) HashTransactions() []byte {
 	var txHashes [][]byte
 
-	for _, tx := range b.Transactions {
+	for _, tx := range block.Transactions {
 		txHashes = append(txHashes, tx.Serializer())
 	}
 
@@ -28,26 +31,32 @@ func (b *Block) HashTransactions() []byte {
 
 func CreateBlock(txs []*Transaction, prevHash []byte, height int) *Block {
 	block := &Block{
-		time.Now().Unix(), 
+		time.Now().Unix(),
 		[]byte{},
 		prevHash,
 		txs,
 		0,
 		height,
+		[]byte{},
+		Difficulty,
 	}
 	pow := NewProof(block)
 	nonce, hash := pow.Run()
 
 	block.Hash = hash[:]
 	block.Nonce = nonce
+	//Set MerkleRoot
+	block.MerkleRoot = block.HashTransactions()
 
 	return block
 }
 
-func Genesis(coinbase *Transaction) *Block {
-	return CreateBlock([]*Transaction{coinbase}, []byte{}, 0)
+// Genesis block
+func Genesis(MinerTx *Transaction) *Block {
+	return CreateBlock([]*Transaction{MinerTx}, []byte{}, 0)
 }
 
+// Util function for serializing blockchain data
 func (b *Block) Serialize() []byte {
 	var res bytes.Buffer
 	encoder := gob.NewEncoder(&res)
@@ -57,6 +66,7 @@ func (b *Block) Serialize() []byte {
 	return res.Bytes()
 }
 
+// Util function for De-serializing blockchain data
 func DeSerialize(data []byte) *Block {
 	var block Block
 	encoder := gob.NewDecoder(bytes.NewReader(data))
@@ -66,6 +76,8 @@ func DeSerialize(data []byte) *Block {
 	return &block
 }
 
+// Check if the block is valid by confirming variety of information
+// in the block
 func IsBlockValid(newBlock, oldBlock Block) bool {
 	if oldBlock.Height+1 != newBlock.Height {
 		return false

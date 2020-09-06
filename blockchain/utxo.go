@@ -18,6 +18,8 @@ type UXTOSet struct {
 	Blockchain *Blockchain
 }
 
+// Find and aggregate all spendable outputs that corresponds to the specificed publicKeyHash
+// such that the aggragation stops when the aggregated outputs value is greater/equal to the specified amount
 func (u *UXTOSet) FindSpendableOutputs(pubKeyHash []byte, amount int) (int, map[string][]int) {
 	unspentOuts := make(map[string][]int)
 	accumulated := 0
@@ -26,6 +28,7 @@ func (u *UXTOSet) FindSpendableOutputs(pubKeyHash []byte, amount int) (int, map[
 
 	err := db.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
+		// To enable key-only iteration, you need to set the IteratorOptions.PrefetchValues field to false
 		opts.PrefetchValues = false
 		it := txn.NewIterator(opts)
 		defer it.Close()
@@ -59,6 +62,8 @@ func (u *UXTOSet) FindSpendableOutputs(pubKeyHash []byte, amount int) (int, map[
 	return accumulated, unspentOuts
 }
 
+// This handles Address Balance by getting all unspent transaction outputs
+// for a particular publicKeyHash
 func (u UXTOSet) FindUnSpentTransactions(pubKeyHash []byte) []TxOutput {
 	var UTXOs []TxOutput
 	db := u.Blockchain.Database
@@ -108,7 +113,7 @@ func (u *UXTOSet) Update(block *Block) {
 	db := u.Blockchain.Database
 	err := db.Update(func(txn *badger.Txn) error {
 		for _, tx := range block.Transactions {
-			if tx.IsCoinBase() == false {
+			if tx.IsMinerTx() == false {
 				for _, in := range tx.Inputs {
 					updatedOutputs := TxOutputs{}
 					inID := append(utxoPrefix, in.ID...)
@@ -142,7 +147,7 @@ func (u *UXTOSet) Update(block *Block) {
 				Handle(err)
 			} else {
 
-				//Update UXTO for coinbase(Miner Benefits) transactions
+				//Update UXTO for Miner(Miner Benefits) transactions
 				newOutputs := TxOutputs{}
 				for _, out := range tx.Outputs {
 					newOutputs.Outputs = append(newOutputs.Outputs, out)
@@ -157,6 +162,8 @@ func (u *UXTOSet) Update(block *Block) {
 
 	Handle(err)
 }
+
+// Update UTXOSet
 func (u *UXTOSet) ReIndex() {
 	db := u.Blockchain.Database
 
@@ -178,6 +185,7 @@ func (u *UXTOSet) ReIndex() {
 
 	Handle(err)
 }
+
 func (u *UXTOSet) DeleteByPrefix(prefix []byte) {
 	deleteKeys := func(keysForDelete [][]byte) error {
 		if err := u.Blockchain.Database.Update(func(txn *badger.Txn) error {
@@ -192,7 +200,9 @@ func (u *UXTOSet) DeleteByPrefix(prefix []byte) {
 		}
 		return nil
 	}
-
+	// https://github.com/dgraph-io/badger#prefix-scans
+	// This is the maximum number of items that badgerDB can delete at once, so we
+	// have to aggregate all keys with utxo prefix and delete it in batch
 	collectSize := 100000
 	u.Blockchain.Database.View(func(txn *badger.Txn) error {
 		opts := badger.DefaultIteratorOptions
@@ -210,7 +220,7 @@ func (u *UXTOSet) DeleteByPrefix(prefix []byte) {
 				if err := deleteKeys(keysForDelete); err != nil {
 					log.Panic(err)
 				}
-
+				// Reset keys to delete collection size
 				keysForDelete = make([][]byte, 0, collectSize)
 				keysCollected = 0
 			}

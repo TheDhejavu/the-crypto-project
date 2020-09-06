@@ -59,22 +59,22 @@ func (cli *CommandLine) Send(from string, to string, amount int, nodeId string, 
 		log.Panic("Invalid from address")
 	}
 
-	chain := blockchain.ContinueBlockchain(nodeId)
+	chain := blockchain.ContinueBlockchain()
 	defer chain.Database.Close()
 	utxos := blockchain.UXTOSet{chain}
 
 	wallets, err := wallet.InitializeWallets()
 	if err != nil {
-		log.Panic(err)     
+		log.Panic(err)
 	}
 
 	wallet := wallets.GetWallet(from)
-	
+
 	tx := blockchain.NewTransaction(&wallet, to, amount, &utxos)
 
 	if mineNow {
 
-		cbTx := blockchain.CoinBaseTx(from, "")
+		cbTx := blockchain.MinerTx(from, "")
 		txs := []*blockchain.Transaction{cbTx, tx}
 		block := chain.MineBlock(txs)
 		utxos.Update(block)
@@ -88,7 +88,7 @@ func (cli *CommandLine) CreateBlockchain(address, nodeId string) {
 	if !wallet.ValidateAddres(address) {
 		log.Panic("Invalid to address")
 	}
-	chain := blockchain.InitBlockchain(address, nodeId)
+	chain := blockchain.InitBlockchain(address)
 	defer chain.Database.Close()
 
 	utxos := blockchain.UXTOSet{chain}
@@ -96,8 +96,8 @@ func (cli *CommandLine) CreateBlockchain(address, nodeId string) {
 	fmt.Println("INITIALIZED BLOCKCHAIN")
 }
 
-func (cli *CommandLine) ReIndexUTXOs(nodeId string) {
-	chain := blockchain.ContinueBlockchain(nodeId)
+func (cli *CommandLine) ReIndexUTXOs() {
+	chain := blockchain.ContinueBlockchain()
 	defer chain.Database.Close()
 
 	utxos := blockchain.UXTOSet{chain}
@@ -105,11 +105,11 @@ func (cli *CommandLine) ReIndexUTXOs(nodeId string) {
 	count := utxos.CountTransactions()
 	fmt.Printf("Rebuild DONE!!!!, there are %d transactions in the utxos set", count)
 }
-func (cli *CommandLine) GetBalance(address, nodeId string) {
+func (cli *CommandLine) GetBalance(address string) {
 	if !wallet.ValidateAddres(address) {
 		log.Panic("Invalid address")
 	}
-	chain := blockchain.ContinueBlockchain(nodeId)
+	chain := blockchain.ContinueBlockchain()
 	defer chain.Database.Close()
 	balance := 0
 	publicKeyHash := wallet.Base58Decode([]byte(address))
@@ -182,7 +182,7 @@ func (cli *CommandLine) Run() {
 			cli.PrintUsage()
 			runtime.Goexit()
 		}
-		cli.GetBalance(*getBalanceAddress, nodeId)
+		cli.GetBalance(*getBalanceAddress)
 	}
 
 	if createBlockchainCmd.Parsed() {
@@ -212,11 +212,11 @@ func (cli *CommandLine) Run() {
 	}
 
 	if printChainCmd.Parsed() {
-		cli.PrintBlockchain(nodeId)
+		cli.PrintBlockchain()
 	}
 
 	if reindexutxoCmd.Parsed() {
-		cli.ReIndexUTXOs(nodeId)
+		cli.ReIndexUTXOs()
 	}
 
 	if startnodeCmd.Parsed() {
@@ -242,8 +242,8 @@ func (cli *CommandLine) ListAddresses() {
 		fmt.Println(address)
 	}
 }
-func (cli *CommandLine) PrintBlockchain(nodeId string) {
-	chain := blockchain.ContinueBlockchain(nodeId)
+func (cli *CommandLine) PrintBlockchain() {
+	chain := blockchain.ContinueBlockchain()
 
 	defer chain.Database.Close()
 	iter := chain.Iterator()

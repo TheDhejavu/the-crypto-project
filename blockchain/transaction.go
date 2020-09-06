@@ -41,14 +41,13 @@ func (tx *Transaction) Hash() []byte {
 	return hash[:]
 }
 
-func (tx *Transaction) IsCoinBase() bool {
+func (tx *Transaction) IsMinerTx() bool {
 	return len(tx.Inputs) == 1 && len(tx.Inputs[0].ID) == 0 && tx.Inputs[0].Out == -1
 }
 
-// I don't know why this sign is important
 func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transaction) {
 
-	if tx.IsCoinBase() {
+	if tx.IsMinerTx() {
 		return
 	}
 
@@ -114,7 +113,7 @@ func NewTransaction(w *wallet.Wallet, to string, amount int, utxo *UXTOSet) *Tra
 			inputs = append(inputs, input)
 		}
 	}
-	
+
 	outputs = append(outputs, *NewTXOutput(amount, to))
 	if acc > amount {
 		outputs = append(outputs, *NewTXOutput(acc-amount, from))
@@ -129,7 +128,7 @@ func NewTransaction(w *wallet.Wallet, to string, amount int, utxo *UXTOSet) *Tra
 }
 
 func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
-	if tx.IsCoinBase() {
+	if tx.IsMinerTx() {
 		return true
 	}
 
@@ -145,7 +144,7 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 		prevTX := prevTXs[hex.EncodeToString(in.ID)]
 		txCopy.Inputs[inId].Signature = nil
 		txCopy.Inputs[inId].PubKey = prevTX.Outputs[in.Out].PubKeyHash
-		
+
 		r := big.Int{}
 		s := big.Int{}
 		sigLen := len(in.Signature)
@@ -191,7 +190,7 @@ func (tx *Transaction) String() string {
 
 	return strings.Join(lines, "\n")
 }
-func CoinBaseTx(to, data string) *Transaction {
+func MinerTx(to, data string) *Transaction {
 	if data == "" {
 		randData := make([]byte, 24)
 		_, err := rand.Read(randData)

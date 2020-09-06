@@ -33,12 +33,6 @@ func NewTXOutput(value int, address string) *TxOutput {
 	return txo
 }
 
-func (in *TxInput) UsesKey(pubKeyHash []byte) bool {
-	lockingHash := wallet.PublicKeyHash(in.PubKey)
-
-	return bytes.Compare(lockingHash, pubKeyHash) == 0
-}
-    
 func (out *TxOutput) Lock(address []byte) {
 	pubKeyHash := wallet.Base58Decode(address)
 	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
@@ -49,7 +43,6 @@ func (out *TxOutput) Lock(address []byte) {
 func (out *TxOutput) IsLockWithKey(pubKeyHash []byte) bool {
 	return bytes.Compare(out.PubKeyHash, pubKeyHash) == 0
 }
-
 
 func (outputs *TxOutputs) Serialize() []byte {
 	var res bytes.Buffer

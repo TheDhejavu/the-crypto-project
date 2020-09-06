@@ -16,15 +16,20 @@ type ProofOfWork struct {
 	Target *big.Int
 }
 
+// /https://imil.net/blog/posts/2019/proof-of-work-based-blockchain-explained-with-golang/
+// Create a new Proof.
 func NewProof(b *Block) *ProofOfWork {
 	target := big.NewInt(1)
 	target.Lsh(target, uint(256-Difficulty))
 
 	pow := &ProofOfWork{b, target}
+	fmt.Printf("target: %x\n", target)
 
 	return pow
 }
 
+// Initialize the block data by concatenating
+// the transaction hash + prevHash + nonce + POW Difficulty
 func (pow *ProofOfWork) InitData(nonce int) []byte {
 	info := bytes.Join(
 		[][]byte{
@@ -37,26 +42,26 @@ func (pow *ProofOfWork) InitData(nonce int) []byte {
 	return info
 }
 
+// Execute the Proof Of Work by incrementing the nonce
+// util the  hash falls below the the target value base on the Difficulty level
 func (pow *ProofOfWork) Run() (int, []byte) {
 	var initHash big.Int
 	var hash [32]byte
 
 	nonce := 0
 
-	for nonce < math.MaxInt64 {
+	for nonce = 0; nonce < math.MaxInt64; nonce++ {
 		info := pow.InitData(nonce)
 		hash = sha256.Sum256(info)
 
 		fmt.Printf("\r%x", hash)
 		initHash.SetBytes(hash[:])
-		
+
 		if initHash.Cmp(pow.Target) == -1 {
+			fmt.Println("\nFound!")
 			break
-		} else {
-			nonce++
 		}
 	}
-	fmt.Println()
 	return nonce, hash[:]
 }
 

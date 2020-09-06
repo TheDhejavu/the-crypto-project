@@ -7,42 +7,49 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"log"
+	"strconv"
 
+	"github.com/workspace/go_blockchain/util/env"
 	"golang.org/x/crypto/ripemd160"
 )
 
-const (
-	checkSumlength = 4
-	version        = byte(0x00) // hexadecimal representation of zero
+var (
+	checkSumlength, _ = strconv.Atoi(env.GetEnvVariable("WALLET_ADDRESS_CHECKSUM"))
+	version           = byte(0x00) // hexadecimal representation of zero
 )
 
-
-
+// https://golang.org/pkg/crypto/ecdsa/
 type Wallet struct {
 	//eliptic curve digital algorithm
 	PrivateKey ecdsa.PrivateKey
 	PublicKey  []byte
 }
 
+// Validate Wallet Address
 func ValidateAddres(address string) bool {
-	pubKeyHash := Base58Decode([]byte(address))
-	checkSumFromAddress := pubKeyHash[len(pubKeyHash)-checkSumlength:]
-	version := pubKeyHash[0]
-	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-checkSumlength]
+	//Convert the address to public key hash
+	fullHash := Base58Decode([]byte(address))
+	// Get the checkSum from Address
+	checkSumFromHash := fullHash[len(fullHash)-checkSumlength:]
+	//Get the version
+	version := fullHash[0]
+	pubKeyHash := fullHash[1 : len(fullHash)-checkSumlength]
 	checkSum := CheckSum(append([]byte{version}, pubKeyHash...))
 
-	return bytes.Compare(checkSum, checkSumFromAddress) == 0
+	return bytes.Compare(checkSum, checkSumFromHash) == 0
 }
 func (w *Wallet) Address() []byte {
 	pubHash := PublicKeyHash(w.PublicKey)
-	versionHash := append([]byte{version}, pubHash...)
-	checksum := CheckSum(versionHash)
-
-	fullHash := append(versionHash, checksum...)
+	versionedHash := append([]byte{version}, pubHash...)
+	checksum := CheckSum(versionedHash)
+	//version-publickeyHash-checksum
+	fullHash := append(versionedHash, checksum...)
 	address := Base58Encode(fullHash)
 
 	return address
 }
+
+// Generate new Key Pair using ecdsa
 func NewKeyPair() (ecdsa.PrivateKey, []byte) {
 	curve := elliptic.P256()
 
@@ -74,8 +81,8 @@ func PublicKeyHash(pubKey []byte) []byte {
 	return publicRipMd
 }
 
-func CheckSum(payload []byte) []byte {
-	firstHash := sha256.Sum256(payload)
+func CheckSum(data []byte) []byte {
+	firstHash := sha256.Sum256(data)
 	secondHash := sha256.Sum256(firstHash[:])
 
 	return secondHash[:checkSumlength]

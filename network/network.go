@@ -393,7 +393,7 @@ func MineTx(chain *blockchain.Blockchain) {
 		fmt.Println("All transactions are valid")
 	}
 
-	cbTx := blockchain.CoinBaseTx(minerAddress, "")
+	cbTx := blockchain.MinerTx(minerAddress, "")
 	txs = append(txs, cbTx)
 	newBlock := chain.MineBlock(txs)
 	UTXOs := blockchain.UXTOSet{chain}
@@ -457,7 +457,7 @@ func StartServer(nodeID, minerAddr string) {
 	}
 
 	defer ln.Close()
-	chain := blockchain.ContinueBlockchain(nodeID)
+	chain := blockchain.ContinueBlockchain()
 
 	defer chain.Database.Close()
 	go CloseDB(chain)

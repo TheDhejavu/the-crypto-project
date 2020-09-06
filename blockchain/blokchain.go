@@ -16,17 +16,20 @@ import (
 	badger "github.com/dgraph-io/badger"
 )
 
+// Blockchain struct such that lastHash represents the lastblock hash
+// on the ledger
 type Blockchain struct {
 	LastHash []byte
 	Database *badger.DB
 }
 
 const (
-	dbPath      = "./tmp/blocks_%s"
+	dbPath      = "./tmp/blocks"
 	dbFile      = "./tmp/blocks/MANIFEST"
 	genesisData = "This is the genesis data"
 )
 
+// Check if Blockchain Database already exist
 func DBExists(path string) bool {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return false
@@ -34,8 +37,8 @@ func DBExists(path string) bool {
 	return true
 }
 
-func ContinueBlockchain(nodeId string) *Blockchain {
-	path := fmt.Sprintf(dbPath, nodeId)
+func ContinueBlockchain() *Blockchain {
+	path := dbPath
 
 	if DBExists(path) == false {
 		fmt.Println("No Existing Blockchian DB found, create one!")
@@ -45,7 +48,7 @@ func ContinueBlockchain(nodeId string) *Blockchain {
 
 	opts := badger.DefaultOptions(path)
 	db, err := badger.Open(opts)
-	
+
 	Handle(err)
 
 	//Read-Write Operations
@@ -61,11 +64,13 @@ func ContinueBlockchain(nodeId string) *Blockchain {
 	return &Blockchain{lastHash, db}
 }
 
-func InitBlockchain(address, nodeId string) *Blockchain {
+// Initialize the blockchain by creating the blockchain database
+// with a genesis block with an address
+func InitBlockchain(address string) *Blockchain {
 	var lastHash []byte
-	path := fmt.Sprintf(dbPath, nodeId)
+	path := dbPath
 
-	if DBExists(path) == true {
+	if DBExists(path) {
 		fmt.Println("Blockchain already exist")
 		runtime.Goexit()
 	}
@@ -78,7 +83,7 @@ func InitBlockchain(address, nodeId string) *Blockchain {
 
 	//Read-Write Operations
 	err = db.Update(func(txn *badger.Txn) error {
-		cbtx := CoinBaseTx(address, genesisData)
+		cbtx := MinerTx(address, genesisData)
 		fmt.Println("No existing blockchain found")
 		genesis := Genesis(cbtx)
 		err = txn.Set(genesis.Hash, genesis.Serialize())
@@ -88,12 +93,16 @@ func InitBlockchain(address, nodeId string) *Blockchain {
 
 		return err
 	})
+	Handle(err)
 
 	return &Blockchain{lastHash, db}
 }
 
+// Add a block to the blockchain
+//https://github.com/dgraph-io/badger#read-write-transactions
 func (chain *Blockchain) AddBlock(block *Block) *Block {
 
+	//Read-Write Operations
 	err := chain.Database.Update(func(txn *badger.Txn) error {
 		if _, err := txn.Get(block.Hash); err == nil {
 			return nil
@@ -103,6 +112,7 @@ func (chain *Blockchain) AddBlock(block *Block) *Block {
 		err := txn.Set(block.Hash, blockData)
 		Handle(err)
 
+		// get the last block
 		item, err := txn.Get([]byte("lh"))
 		Handle(err)
 		lastHash, _ := item.ValueCopy(nil)
@@ -111,6 +121,8 @@ func (chain *Blockchain) AddBlock(block *Block) *Block {
 		lastBlockData, _ := item.ValueCopy(nil)
 		lastBlock := DeSerialize(lastBlockData)
 
+		//check if the current block height is
+		// greater than the lastBlock Height
 		if block.Height > lastBlock.Height {
 			err := txn.Set([]byte("lh"), block.Hash)
 			Handle(err)
@@ -125,14 +137,16 @@ func (chain *Blockchain) AddBlock(block *Block) *Block {
 	return block
 }
 
+// Get Block from the blockchain
 func (chain *Blockchain) GetBlock(blockHash []byte) (Block, error) {
 	var block Block
-
+	//Read Operations
 	err := chain.Database.View(func(txn *badger.Txn) error {
 		if item, err := txn.Get(blockHash); err != nil {
-			return errors.New("Block is not found")
+			return errors.New("Block does not exist")
 		} else {
 			blockData, _ := item.ValueCopy(nil)
+			// Deserialize the block data
 			block = *DeSerialize(blockData)
 		}
 		return nil
@@ -144,6 +158,7 @@ func (chain *Blockchain) GetBlock(blockHash []byte) (Block, error) {
 	return block, nil
 }
 
+//Aggregate and get all block hashes in the blockchain
 func (chain *Blockchain) GetBlockHashes() [][]byte {
 	var blocks [][]byte
 
@@ -163,6 +178,7 @@ func (chain *Blockchain) GetBlockHashes() [][]byte {
 
 }
 
+// Get Best height basically gets the height(Index) of the lastBlock
 func (chain *Blockchain) GetBestHeight() int {
 	var lastBlock Block
 
@@ -184,6 +200,8 @@ func (chain *Blockchain) GetBestHeight() int {
 	return lastBlock.Height
 
 }
+
+//Mine Block Creates a new block and adds it to the blockchain
 func (chain *Blockchain) MineBlock(transactions []*Transaction) *Block {
 	var lastHash []byte
 	var lastHeight int
@@ -194,6 +212,7 @@ func (chain *Blockchain) MineBlock(transactions []*Transaction) *Block {
 		}
 	}
 	lastHash = chain.LastHash
+	//Populate lastHeight
 	err := chain.Database.View(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte("lh"))
 		Handle(err)
@@ -235,6 +254,8 @@ func DeserializeTransaction(data []byte) Transaction {
 	Handle(err)
 	return transaction
 }
+
+// Aggregate all Unspent Transaction output from the blockchain
 func (chain *Blockchain) FindUTXO() map[string]TxOutputs {
 	UTXOs := make(map[string]TxOutputs)
 	spentTXOs := make(map[string][]int)
@@ -245,6 +266,7 @@ func (chain *Blockchain) FindUTXO() map[string]TxOutputs {
 		block := iter.Next()
 
 		for _, tx := range block.Transactions {
+			//Convert transaction ID to string
 			txID := hex.EncodeToString(tx.ID)
 
 		Outputs:
@@ -256,11 +278,13 @@ func (chain *Blockchain) FindUTXO() map[string]TxOutputs {
 						}
 					}
 				}
+				//Add to UTXO 
 				outs := UTXOs[txID]
 				outs.Outputs = append(outs.Outputs, out)
 				UTXOs[txID] = outs
 			}
-			if tx.IsCoinBase() == false {
+			if !tx.IsMinerTx() {
+				//Keep Track of Spent Transaction Outputs 
 				for _, in := range tx.Inputs {
 					inTxID := hex.EncodeToString(in.ID)
 					spentTXOs[inTxID] = append(spentTXOs[inTxID], in.Out)
@@ -301,12 +325,12 @@ func (chain *Blockchain) SignTransaction(privKey ecdsa.PrivateKey, tx *Transacti
 		Handle(err)
 		prevTXs[hex.EncodeToString(prevTX.ID)] = prevTX
 	}
-	
+
 	tx.Sign(privKey, prevTXs)
 }
 
 func (bc *Blockchain) VerifyTransaction(tx *Transaction) bool {
-	if tx.IsCoinBase() {
+	if tx.IsMinerTx() {
 		return true
 	}
 	prevTXs := make(map[string]Transaction)
