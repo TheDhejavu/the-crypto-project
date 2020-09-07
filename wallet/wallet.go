@@ -7,14 +7,14 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"log"
-	"strconv"
 
-	"github.com/workspace/go_blockchain/util/env"
+	"github.com/workspace/the-crypto-project/util/env"
 	"golang.org/x/crypto/ripemd160"
 )
 
+var conf = env.New()
 var (
-	checkSumlength, _ = strconv.Atoi(env.GetEnvVariable("WALLET_ADDRESS_CHECKSUM"))
+	checkSumlength = conf.WalletAddressChecksum
 	version           = byte(0x00) // hexadecimal representation of zero
 )
 

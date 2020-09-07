@@ -8,24 +8,32 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 )
 
-const walletsPath = "./tmp/wallets.data"
+var walletsPath = "./tmp/"
+var walletsFilename = "wallets.data"
 
 type Wallets struct {
 	Wallets map[string]*Wallet
 }
 
-func InitializeWallets() (*Wallets, error) {
+func InitializeWallets(cwd bool) (*Wallets, error) {
 	wallets := Wallets{map[string]*Wallet{}}
-	err := wallets.LoadFile()
+	err := wallets.LoadFile(cwd)
 
 	return &wallets, err
-
 }
 func (ws *Wallets) GetWallet(address string) Wallet {
-	return *ws.Wallets[address]
+	var wallet *Wallet
+	var ok bool
+	w := *ws
+	if wallet, ok = w.Wallets[address]; !ok {
+		log.Fatalf("Address does not exist")
+	}
+	return *wallet
 }
+
 func (ws *Wallets) AddWallet() string {
 	wallet := MakeWallet()
 	address := fmt.Sprintf("%s", wallet.Address())
@@ -41,9 +49,16 @@ func (ws *Wallets) GetAllAddress() []string {
 	}
 	return addresses
 }
-func (ws *Wallets) LoadFile() error {
-	walletsFile := fmt.Sprintf(walletsPath)
-	
+func (ws *Wallets) LoadFile(cwd bool) error {
+	walletsFile := path.Join(walletsPath, walletsFilename)
+	if cwd {
+		dir, err := os.Getwd()
+		if err != nil {
+			log.Fatal(err)
+		}
+		walletsFile = path.Join(dir, walletsFilename)
+	}
+
 	if _, err := os.Stat(walletsFile); os.IsNotExist(err) {
 		return err
 	}
@@ -64,7 +79,15 @@ func (ws *Wallets) LoadFile() error {
 
 	return nil
 }
-func (ws *Wallets) SaveFile() {
+func (ws *Wallets) SaveFile(cwd bool) {
+	walletsFile := path.Join(walletsPath, walletsFilename)
+	if cwd {
+		dir, err := os.Getwd()
+		if err != nil {
+			log.Fatal(err)
+		}
+		walletsFile = path.Join(dir, walletsFilename)
+	}
 	var content bytes.Buffer
 
 	gob.Register(elliptic.P256())
@@ -74,7 +97,7 @@ func (ws *Wallets) SaveFile() {
 	if err != nil {
 		log.Panic(err)
 	}
-	walletsFile := fmt.Sprintf(walletsPath)
+
 	err = ioutil.WriteFile(walletsFile, content.Bytes(), 0644)
 	if err != nil {
 		log.Panic(err)

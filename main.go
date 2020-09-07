@@ -3,8 +3,9 @@ package main
 import (
 	"os"
 
-	"github.com/workspace/go_blockchain/cli"
+	"github.com/workspace/the-crypto-project/cli"
 )
+
 
 func main() {
 	defer os.Exit(0)

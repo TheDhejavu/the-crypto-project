@@ -26,24 +26,37 @@ This is a blockchain project that implements some of the major feature of popula
 |:-----------|:-------------------------------------------------|
 | `./p2p`    | Scripts for the crypto project nNetwork Layer    |
 | `./Binaries`| An on-demand Folder for executable E.G Wallet   |
-| `./cli`    | CLI Scripts for interacting with the blockhain   |
+| `./cmd`    | CLI Scripts for interacting with the blockhain   |
+| `./wallet` | Wallet Source code.                              |
 | `./api`    | Source code.                                     |
 
 ### Blockchain
-Blockchain can be defined as a database that stores blocks, with every next block being linked to the previous one in a cryptographically secure way so that it’s not possible to change anything in previous blocks, it is a Decentralized system of Nodes that works in a co-ordinated way
+Blockchain can be defined as a database that stores blocks, with every next block being linked to the previous one in a cryptographically secure way so that it’s not possible to change anything in previous blocks, it is a Decentralized system of Nodes that works in a co-ordinated way.
 
-#### Interacting with the blockchain
-
-- Via CLI
-
-- REStFul API
+The cryto-project blockchain has different actions which are made accessible via the in-built CLI and the REST API
 
 ### Consensus, Blocks & Proof Of Work (POW)
 
 
 ###  Wallet
 The wallet system, comparable to a bank account, contains a pair of public and private cryptographic keys. The keys can be used to track ownership, receive or spend cryptocurrencies. A public key allows for other wallets to make payments to the wallet's address, whereas a private key enables the spending of cryptocurrency from that address.
-#### NB: you can't spend your digital currency without your private key and once your private key is compromise, moving your money to a new wallet address is the best thing to do. 
+#### NB: you can't spend your digital currency without your private key and once your private key is compromise, moving your money to a new wallet address is the best thing to do.
+
+
+The wallet system is independent of the blockchain network and it is built ontop of the `base` Command line(the network default CLI) and also there is a dedicated executable file in the `binaries` folder coupled with basic commands for performing different actions
+
+##### Download https://github.com/TheDhejavu/the-crypto-project/tree/master/binaries/wallet.exe
+
+#### Commands 
+
+Generate new wallet
+`./wallet generate`
+
+Print all local wallet
+`./wallet print`
+
+Pirnt wallet by Address
+`./wallet print --address ADDRESS` 
 
 ### Transactions
 
@@ -68,6 +81,7 @@ This concept became really popular due to the bitcoin blockhain and this can be 
 - Data visualization
 - gRPC implementation for interacting with the blockchain
 - Smart Contract & VM (Maybe, 😃)
+- Test
 
 ## References
 - [Blockchain Basic, A Non-technical guide](https://www.goodreads.com/book/show/34137265-blockchain-basics)
@@ -80,3 +94,4 @@ This concept became really popular due to the bitcoin blockhain and this can be 
 - [Wallet](https://en.wikipedia.org/wiki/Cryptocurrency_wallet)
 - [How Bitcoin Works under the Hood](https://www.youtube.com/watch?v=Lx9zgZCMqXE)
 - [What is the difference between decentralized and distributed systems?](https://medium.com/distributed-economy/what-is-the-difference-between-decentralized-and-distributed-systems-f4190a5c6462#:~:text=A%20decentralized%20system%20is%20a%20subset%20of%20a%20distributed%20system.&text=Decentralized%20means%20that%20there%20is,where%20the%20decision%20is%20made.&text=Distributed%20means%20that%20the%20processing,and%20use%20complete%20system%20knowledge.)
+- [Ethereum Geth](https://geth.ethereum.org/docs/)

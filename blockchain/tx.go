@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 
-	"github.com/workspace/go_blockchain/wallet"
+	"github.com/workspace/the-crypto-project/wallet"
 )
 
 // Input represents debit

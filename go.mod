@@ -1,4 +1,4 @@
-module github.com/workspace/go_blockchain
+module github.com/workspace/the-crypto-project
 
 go 1.13
 
@@ -10,6 +10,7 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/libp2p/go-libp2p v0.10.3
 	github.com/mr-tron/base58 v1.2.0
+	github.com/spf13/cobra v0.0.5
 	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de
 	gopkg.in/vrecan/death.v3 v3.0.1
 )

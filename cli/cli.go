@@ -8,9 +8,9 @@ import (
 	"runtime"
 	"strconv"
 
-	"github.com/workspace/go_blockchain/blockchain"
-	"github.com/workspace/go_blockchain/network"
-	"github.com/workspace/go_blockchain/wallet"
+	"github.com/workspace/the-crypto-project/blockchain"
+	"github.com/workspace/the-crypto-project/network"
+	"github.com/workspace/the-crypto-project/wallet"
 )
 
 type CommandLine struct {
@@ -62,8 +62,8 @@ func (cli *CommandLine) Send(from string, to string, amount int, nodeId string, 
 	chain := blockchain.ContinueBlockchain()
 	defer chain.Database.Close()
 	utxos := blockchain.UXTOSet{chain}
-
-	wallets, err := wallet.InitializeWallets()
+	cwd := false
+	wallets, err := wallet.InitializeWallets(cwd)
 	if err != nil {
 		log.Panic(err)
 	}
