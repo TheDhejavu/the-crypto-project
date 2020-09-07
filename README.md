@@ -50,13 +50,16 @@ The wallet system is independent of the blockchain network and it is built ontop
 #### Commands 
 
 Generate new wallet
-`./wallet generate`
+
+    `./wallet generate`
 
 Print all local wallet
-`./wallet print`
+
+    `./wallet print`
 
 Pirnt wallet by Address
-`./wallet print --address ADDRESS` 
+
+    `./wallet print --address ADDRESS` 
 
 ### Transactions
 
