@@ -79,7 +79,7 @@ func (cli *CommandLine) CreateBlockchain(address string) {
 
 	utxos := blockchain.UXTOSet{chain}
 	utxos.Compute()
-	fmt.Println("INITIALIZED BLOCKCHAIN")
+	fmt.Println("Initialized Blockchain Successfully")
 }
 
 func (cli *CommandLine) ComputeUTXOs() {
