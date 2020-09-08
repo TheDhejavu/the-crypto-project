@@ -46,6 +46,7 @@ The wallet system is independent of the blockchain network and it is built ontop
 
 ##### Download https://github.com/TheDhejavu/the-crypto-project/tree/master/binaries/wallet.exe
 
+#### Via Standalone Binaries
 #### Commands 
 
 Generate new wallet
@@ -59,6 +60,21 @@ Print all local wallet
 Print wallet by Address
 
     ./wallet print --address ADDRESS
+
+#### Via Chain CLI
+##### CLI https://github.com/TheDhejavu/the-crypto-project/tree/master/cmd/chain
+
+Generate new wallet
+
+    chain wallet new
+
+List Addresses
+
+    chain wallet listaddress
+
+Get Balance
+
+    chain wallet balance --address ADDRESS
 
 ### Transactions
 
