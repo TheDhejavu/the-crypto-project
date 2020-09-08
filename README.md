@@ -61,21 +61,6 @@ Print wallet by Address
 
     ./wallet print --address ADDRESS
 
-#### Via Chain CLI
-##### CLI https://github.com/TheDhejavu/the-crypto-project/tree/master/cmd/chain
-
-Generate new wallet
-
-    chain wallet new
-
-List Addresses
-
-    chain wallet listaddress
-
-Get Balance
-
-    chain wallet balance --address ADDRESS
-
 ### Transactions
 
 
@@ -96,8 +81,27 @@ They are available to be used in new transactions (as long as you can unlock the
 ### Networking (P2P/Distributed System)
 
 
+#### Chain CommandLine
 
-### Chain CommandLine
+This is the official command line for the crypto project, this commandline allows developers to interact with the blockchain network
+
+##### CLI https://github.com/TheDhejavu/the-crypto-project/tree/master/cmd/chain
+
+#### Commands 
+
+Generate new wallet
+
+    chain wallet new
+
+List Addresses
+
+    chain wallet listaddress
+
+Get Balance
+
+    chain wallet balance --address ADDRESS
+
+#### Command Help
 
     Usage:
         chain [command]
