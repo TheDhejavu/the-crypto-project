@@ -91,7 +91,7 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 	return txCopy
 }
 
-func NewTransaction(w *wallet.Wallet, to string, amount int, utxo *UXTOSet) *Transaction {
+func NewTransaction(w *wallet.Wallet, to string, amount float64, utxo *UXTOSet) *Transaction {
 	var inputs []TxInput
 	var outputs []TxOutput
 
@@ -184,7 +184,7 @@ func (tx *Transaction) String() string {
 
 	for i, out := range tx.Outputs {
 		lines = append(lines, fmt.Sprintf("	Output (%d):", i))
-		lines = append(lines, fmt.Sprintf(" 	 	Value: %d", out.Value))
+		lines = append(lines, fmt.Sprintf(" 	 	Value: %f", out.Value))
 		lines = append(lines, fmt.Sprintf("		PubkeyHash: %x", out.PubKeyHash))
 	}
 
@@ -199,7 +199,7 @@ func MinerTx(to, data string) *Transaction {
 	}
 
 	txIn := TxInput{[]byte{}, -1, nil, []byte(data)}
-	txOut := NewTXOutput(20, to)
+	txOut := NewTXOutput(20.000, to)
 
 	tx := Transaction{nil, []TxInput{txIn}, []TxOutput{*txOut}}
 

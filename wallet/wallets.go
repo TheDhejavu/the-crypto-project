@@ -9,10 +9,18 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
+	"runtime"
 )
 
-var walletsPath = "./tmp/"
-var walletsFilename = "wallets.data"
+var (
+	_, b, _, _ = runtime.Caller(0)
+
+	// Root folder of this project
+	Root            = filepath.Join(filepath.Dir(b), "../")
+	walletsPath     = path.Join(Root, "/tmp/")
+	walletsFilename = "wallets.data"
+)
 
 type Wallets struct {
 	Wallets map[string]*Wallet
@@ -51,6 +59,7 @@ func (ws *Wallets) GetAllAddress() []string {
 }
 func (ws *Wallets) LoadFile(cwd bool) error {
 	walletsFile := path.Join(walletsPath, walletsFilename)
+
 	if cwd {
 		dir, err := os.Getwd()
 		if err != nil {
@@ -81,6 +90,7 @@ func (ws *Wallets) LoadFile(cwd bool) error {
 }
 func (ws *Wallets) SaveFile(cwd bool) {
 	walletsFile := path.Join(walletsPath, walletsFilename)
+
 	if cwd {
 		dir, err := os.Getwd()
 		if err != nil {

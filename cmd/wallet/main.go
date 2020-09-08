@@ -22,15 +22,14 @@ func PrintWalletAddress(address string, w wallet.Wallet) {
 }
 
 func main() {
-	var cmdGenerate = &cobra.Command{
-		Use:   "generate",
+	var cmdNew = &cobra.Command{
+		Use:   "new",
 		Short: "Generate new wallet and print",
 		Run: func(cmd *cobra.Command, args []string) {
 
 			wallets, _ := wallet.InitializeWallets(cwd)
 			address := wallets.AddWallet()
-			currentPath := true
-			wallets.SaveFile(currentPath)
+			wallets.SaveFile(cwd)
 			w := wallets.GetWallet(address)
 			PrintWalletAddress(address, w)
 		},

@@ -43,7 +43,7 @@ The wallet system, comparable to a bank account, contains a pair of public and p
 #### NB: you can't spend your digital currency without your private key and once your private key is compromise, moving your money to a new wallet address is the best thing to do.
 
 
-The wallet system is independent of the blockchain network and it is built ontop of the `base` Command line(the network default CLI) and also there is a dedicated executable file in the `binaries` folder coupled with basic commands for performing different actions
+The wallet system is independent of the blockchain network and it is built ontop of the `chain` Command line(the network default CLI) and also there is a dedicated executable file in the `binaries` folder coupled with basic commands for performing different actions
 
 ##### Download https://github.com/TheDhejavu/the-crypto-project/tree/master/binaries/wallet.exe
 
@@ -57,7 +57,7 @@ Print all local wallet
 
     ./wallet print
 
-Pirnt wallet by Address
+Print wallet by Address
 
     ./wallet print --address ADDRESS
 
@@ -67,7 +67,8 @@ Pirnt wallet by Address
 ### Uspent Transaction Output (UTXO) Model
 
 This concept became really popular due to the bitcoin blockhain and this can be defined as an output of a blockchain transaction that has not been spent
- They are available to be used in new transactions (as long as you can unlock them with your private key), which makes them useful. UTXOs is used as inputs when a user tries to send X amount of token to Y person given that the amount of UTXOs that the user can unlock is enough to be used as an input. Calculating a wallet address balance can be gotten by accumulating all the unspent transaction outputs that are locked to the particular address
+
+They are available to be used in new transactions (as long as you can unlock them with your private key), which makes them useful. UTXOs is used as inputs when a user tries to send X amount of token to Y person given that the amount of UTXOs that the user can unlock is enough to be used as an input. Calculating a wallet address balance can be gotten by accumulating all the unspent transaction outputs that are locked to the particular address
  #### Why do we need this ?
  
  Blockchain data are quite verbose, it can range from hundrends to billions of data and computing user wallet balance from a blockchian of that size is computationally expensive in which UTXOs came in as a resucue to reduce overhead. UTXOs ain't all that clever but it's a progress, Ethereum introduced a better way to compute user balance which i think is way better than UTXOs.
@@ -98,3 +99,4 @@ This concept became really popular due to the bitcoin blockhain and this can be 
 - [How Bitcoin Works under the Hood](https://www.youtube.com/watch?v=Lx9zgZCMqXE)
 - [What is the difference between decentralized and distributed systems?](https://medium.com/distributed-economy/what-is-the-difference-between-decentralized-and-distributed-systems-f4190a5c6462#:~:text=A%20decentralized%20system%20is%20a%20subset%20of%20a%20distributed%20system.&text=Decentralized%20means%20that%20there%20is,where%20the%20decision%20is%20made.&text=Distributed%20means%20that%20the%20processing,and%20use%20complete%20system%20knowledge.)
 - [Ethereum Geth](https://geth.ethereum.org/docs/)
+- [Original Bitcoin Client](https://en.bitcoin.it/wiki/Original_Bitcoin_client/API_calls_list)

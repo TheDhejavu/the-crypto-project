@@ -23,14 +23,19 @@ type Blockchain struct {
 	Database *badger.DB
 }
 
-const (
-	dbPath      = "./tmp/blocks"
-	dbFile      = "./tmp/blocks/MANIFEST"
+var (
+	_, b, _, _ = runtime.Caller(0)
+
+	// Root folder of this project
+	Root        = filepath.Join(filepath.Dir(b), "../")
+	dbPath      = filepath.Join(Root, "./tmp/blocks")
+	dbFile      = filepath.Join(Root, "./tmp/blocks/MANIFEST")
 	genesisData = "This is the genesis data"
 )
 
 // Check if Blockchain Database already exist
 func DBExists(path string) bool {
+	fmt.Println(path)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return false
 	}
@@ -38,6 +43,7 @@ func DBExists(path string) bool {
 }
 
 func ContinueBlockchain() *Blockchain {
+	
 	path := dbPath
 
 	if DBExists(path) == false {
@@ -278,13 +284,13 @@ func (chain *Blockchain) FindUTXO() map[string]TxOutputs {
 						}
 					}
 				}
-				//Add to UTXO 
+				//Add to UTXO
 				outs := UTXOs[txID]
 				outs.Outputs = append(outs.Outputs, out)
 				UTXOs[txID] = outs
 			}
 			if !tx.IsMinerTx() {
-				//Keep Track of Spent Transaction Outputs 
+				//Keep Track of Spent Transaction Outputs
 				for _, in := range tx.Inputs {
 					inTxID := hex.EncodeToString(in.ID)
 					spentTXOs[inTxID] = append(spentTXOs[inTxID], in.Out)

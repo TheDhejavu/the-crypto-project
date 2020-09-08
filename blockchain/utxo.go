@@ -20,9 +20,9 @@ type UXTOSet struct {
 
 // Find and aggregate all spendable outputs that corresponds to the specificed publicKeyHash
 // such that the aggragation stops when the aggregated outputs value is greater/equal to the specified amount
-func (u *UXTOSet) FindSpendableOutputs(pubKeyHash []byte, amount int) (int, map[string][]int) {
+func (u *UXTOSet) FindSpendableOutputs(pubKeyHash []byte, amount float64) (float64, map[string][]int) {
 	unspentOuts := make(map[string][]int)
-	accumulated := 0
+	accumulated := float64(0)
 
 	db := u.Blockchain.Database
 
@@ -164,7 +164,7 @@ func (u *UXTOSet) Update(block *Block) {
 }
 
 // Update UTXOSet
-func (u *UXTOSet) ReIndex() {
+func (u *UXTOSet) Compute() {
 	db := u.Blockchain.Database
 
 	u.DeleteByPrefix(utxoPrefix)

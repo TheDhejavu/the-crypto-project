@@ -19,11 +19,17 @@ var (
 
 type Config struct {
 	WalletAddressChecksum int
+	MinerAddress          string
+	NodeId                string
+	Miner                 bool
 }
 
 func New() *Config {
 	return &Config{
 		WalletAddressChecksum: getEnvAsInt("WALLET_ADDRESS_CHECKSUM", 1),
+		MinerAddress:          getEnvAsStr("MINER_ADDRESS", ""),
+		NodeId:                getEnvAsStr("NODE_ID", ""),
+		Miner:                 getEnvAsBool("MINER", false),
 	}
 }
 
@@ -49,6 +55,23 @@ func getEnv(key string, defaultVal string) string {
 func getEnvAsInt(name string, defaultVal int) int {
 	valueStr := GetEnvVariable(name)
 	if value, err := strconv.Atoi(valueStr); err == nil {
+		return value
+	}
+
+	return defaultVal
+}
+func getEnvAsStr(name string, defaultVal string) string {
+	valueStr := GetEnvVariable(name)
+	if valueStr != "" {
+		return valueStr
+	}
+
+	return defaultVal
+}
+
+func getEnvAsBool(name string, defaultVal bool) bool {
+	valueStr := GetEnvVariable(name)
+	if value, err := strconv.ParseBool(valueStr); err == nil {
 		return value
 	}
 

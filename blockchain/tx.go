@@ -22,11 +22,11 @@ type TxOutputs struct {
 
 // output represents credit
 type TxOutput struct {
-	Value      int
+	Value      float64
 	PubKeyHash []byte
 }
 
-func NewTXOutput(value int, address string) *TxOutput {
+func NewTXOutput(value float64, address string) *TxOutput {
 	txo := &TxOutput{value, nil}
 	txo.Lock([]byte(address))
 
