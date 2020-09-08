@@ -13,7 +13,7 @@ import (
 	"github.com/workspace/the-crypto-project/wallet"
 )
 
-type CommandLine st ruct {
+type CommandLine struct {
 	Blockchain *blockchain.Blockchain
 }
 
