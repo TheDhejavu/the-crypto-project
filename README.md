@@ -81,7 +81,7 @@ They are available to be used in new transactions (as long as you can unlock the
 ### Networking (P2P/Distributed System)
 
 
-#### Chain CommandLine
+### Chain CommandLine
 
 This is the official command line for the crypto project, this commandline allows developers to interact with the blockchain network
 
