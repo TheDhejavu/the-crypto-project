@@ -81,7 +81,7 @@ They are available to be used in new transactions (as long as you can unlock the
 
 
 
-## Chain CommandLine
+### Chain CommandLine
 
     Usage:
         chain [command]
@@ -91,8 +91,7 @@ They are available to be used in new transactions (as long as you can unlock the
         help            Help about any command
         init            Initialize the blockchain and create the genesis block
         print           Print the blocks in the blockchain
-        send            Send x amount of token to address from local
-        wallet address
+        send            Send x amount of token to address from local wallet address
         startnode       start a node
         wallet          Manage wallets
 
