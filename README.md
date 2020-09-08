@@ -101,6 +101,24 @@ Get Balance
 
     chain wallet balance --address ADDRESS
 
+Print blockchain
+
+    chain print
+    
+Compute UTXOs
+
+    chain computeutxos
+
+Send
+
+    chain send --sendFrom ADDRESS --sendTo ADDRESS --amount AMOUNT 
+
+Start Node
+
+The minerAddress, miner and nodeId Flags are optional if this flags already exist in `.env` file
+
+    chain startnode --nodeId NODE_ID --minerAddress MINER_ADDRESS --miner
+
 #### Command Help
 
     Usage:
