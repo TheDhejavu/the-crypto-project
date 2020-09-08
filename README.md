@@ -37,7 +37,6 @@ The cryto-project blockchain has different actions which are made accessible via
 
 ### Consensus, Blocks & Proof Of Work (POW)
 
-
 ###  Wallet
 The wallet system, comparable to a bank account, contains a pair of public and private cryptographic keys. The keys can be used to track ownership, receive or spend cryptocurrencies. A public key allows for other wallets to make payments to the wallet's address, whereas a private key enables the spending of cryptocurrency from that address.
 #### NB: you can't spend your digital currency without your private key and once your private key is compromise, moving your money to a new wallet address is the best thing to do.
@@ -79,6 +78,27 @@ They are available to be used in new transactions (as long as you can unlock the
 ### Merkle Tree
 
 ### Networking (P2P/Distributed System)
+
+
+
+## Chain CommandLine
+
+    Usage:
+        chain [command]
+
+    Available Commands:
+        computeutxos    Re-build and Compute Unspent transaction outputs
+        help            Help about any command
+        init            Initialize the blockchain and create the genesis block
+        print           Print the blocks in the blockchain
+        send            Send x amount of token to address from local
+        wallet address
+        startnode       start a node
+        wallet          Manage wallets
+
+    Flags:
+        --address string   Wallet address
+        -h, --help         help for chain
 
 ## TODO
 
