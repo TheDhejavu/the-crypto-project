@@ -35,7 +35,6 @@ var (
 
 // Check if Blockchain Database already exist
 func DBExists(path string) bool {
-	fmt.Println(path)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return false
 	}
@@ -43,7 +42,7 @@ func DBExists(path string) bool {
 }
 
 func ContinueBlockchain() *Blockchain {
-	
+
 	path := dbPath
 
 	if DBExists(path) == false {
@@ -370,7 +369,7 @@ func OpenDB(dir string, opts badger.Options) (*badger.DB, error) {
 				return db, nil
 			}
 
-			log.Panicln("could not unlock databse", err)
+			log.Panicln("could not unlock database", err)
 		}
 
 		return nil, err

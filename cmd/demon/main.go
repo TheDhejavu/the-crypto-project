@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/spf13/cobra"
-	"github.com/workspace/the-crypto-project/blockchain"
+	blockchain "github.com/workspace/the-crypto-project/core"
 	"github.com/workspace/the-crypto-project/network"
 	"github.com/workspace/the-crypto-project/util/env"
 	"github.com/workspace/the-crypto-project/wallet"

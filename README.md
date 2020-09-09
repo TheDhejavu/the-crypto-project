@@ -6,12 +6,12 @@ This is a blockchain project that implements some of the major feature of popula
 # Flow Diagram
 ![flow diagram](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/flowdiagram.jpg)
 
-## PereQuisite
+## Prerequisite
 - [Golang](https://golang.org/)
 - [libp2p-go ](https://docs.libp2p.io/)
 - [BadgerDB](https://github.com/dgraph-io/badger)
 
-## Terms
+## The Codebase
 - Blockchain
 - Consensus, Blocks & Proof Of Work (POW)
 - Wallet
@@ -28,7 +28,7 @@ This is a blockchain project that implements some of the major feature of popula
 | `./Binaries`| An on-demand Folder for executable E.G Wallet   |
 | `./cmd`    | CLI Scripts for interacting with the blockhain   |
 | `./wallet` | Wallet Source code.                              |
-| `./api`    | Source code.                                     |
+| `./rest-api`| RestFul API                                     |
 
 ### Blockchain
 Blockchain can be defined as a database that stores blocks, with every next block being linked to the previous one in a cryptographically secure way so that it’s not possible to change anything in previous blocks, it is a Decentralized system of Nodes that works in a co-ordinated way.
@@ -42,7 +42,7 @@ The wallet system, comparable to a bank account, contains a pair of public and p
 #### NB: you can't spend your digital currency without your private key and once your private key is compromise, moving your money to a new wallet address is the best thing to do.
 
 
-The wallet system is independent of the blockchain network and it is built ontop of the `chain` Command line(the network default CLI) and also there is a dedicated executable file in the `binaries` folder coupled with basic commands for performing different actions
+The wallet system is independent of the blockchain network and it is built ontop of the `demon` Command line(the network default CLI) and also there is a dedicated executable file in the `binaries` folder coupled with basic commands for performing different actions
 
 ##### Download https://github.com/TheDhejavu/the-crypto-project/tree/master/binaries/wallet.exe
 
@@ -51,7 +51,7 @@ The wallet system is independent of the blockchain network and it is built ontop
 
 Generate new wallet
 
-    ./wallet generate
+    ./wallet new
 
 Print all local wallet
 
@@ -81,6 +81,8 @@ They are available to be used in new transactions (as long as you can unlock the
 ### Networking (P2P/Distributed System)
 
 
+### Project Setup
+
 ### Chain CommandLine
 
 This is the official command line for the crypto project, this commandline allows developers to interact with the blockchain network
@@ -95,34 +97,34 @@ Generate new wallet
 
 List Addresses
 
-    chain wallet listaddress
+    demon wallet listaddress
 
 Get Balance
 
-    chain wallet balance --address ADDRESS
+    demon wallet balance --address ADDRESS
 
 Print blockchain
 
-    chain print
+    demon printblockchain
     
 Compute UTXOs
 
-    chain computeutxos
+    demon computeutxos
 
 Send
 
-    chain send --sendFrom ADDRESS --sendTo ADDRESS --amount AMOUNT 
+    demon send --sendFrom ADDRESS --sendTo ADDRESS --amount AMOUNT 
 
 Start Node
 
 The minerAddress, miner and nodeId Flags are optional if this flags already exist in `.env` file
 
-    chain startnode --nodeId NODE_ID --minerAddress MINER_ADDRESS --miner
+    demon startnode --nodeId NODE_ID --minerAddress MINER_ADDRESS --miner
 
 #### Command Help
 
     Usage:
-        chain [command]
+        demon [command]
 
     Available Commands:
         computeutxos    Re-build and Compute Unspent transaction outputs
