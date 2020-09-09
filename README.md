@@ -28,7 +28,7 @@ This is a blockchain project that implements some of the major feature of popula
 | `./Binaries`| An on-demand Folder for executable E.G Wallet   |
 | `./cmd`    | CLI Scripts for interacting with the blockhain   |
 | `./wallet` | Wallet Source code.                              |
-| `./rest-api`| RestFul API                                     |
+| `./examples`| Code samples for API wrappers written in Go, Python and NodeJS                                    |
 
 ### Blockchain
 Blockchain can be defined as a database that stores blocks, with every next block being linked to the previous one in a cryptographically secure way so that it’s not possible to change anything in previous blocks, it is a Decentralized system of Nodes that works in a co-ordinated way.
@@ -93,7 +93,7 @@ This is the official command line for the crypto project, this commandline allow
 
 Generate new wallet
 
-    chain wallet new
+    demon wallet new
 
 List Addresses
 
@@ -117,9 +117,9 @@ Send
 
 Start Node
 
-The minerAddress, miner and nodeId Flags are optional if this flags already exist in `.env` file
+The minerAddress, miner and ListenAddr Flags are optional if this flags already exist in `.env` file
 
-    demon startnode --nodeId NODE_ID --minerAddress MINER_ADDRESS --miner
+    demon startnode --ListenAddr LISTEN_ADDR --minerAddress MINER_ADDRESS --miner
 
 #### Command Help
 
@@ -142,9 +142,8 @@ The minerAddress, miner and nodeId Flags are optional if this flags already exis
 ## TODO
 
 - Data visualization
-- gRPC implementation for interacting with the blockchain
-- Smart Contract & VM (Maybe, 😃)
-- Test
+- Smart Contract & Basic Virtual Machine (Maybe, 😃)
+- Write Test
 
 ## References
 - [Blockchain Basic, A Non-technical guide](https://www.goodreads.com/book/show/34137265-blockchain-basics)

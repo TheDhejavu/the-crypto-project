@@ -17,11 +17,11 @@ type CommandLine struct {
 	Blockchain *blockchain.Blockchain
 }
 
-func (cli *CommandLine) StartNode(nodeId, minerAddress string, miner bool) {
+func (cli *CommandLine) StartNode(ListenAddr, minerAddress string, miner bool) {
 	if miner {
-		fmt.Printf("Starting Node %s as a MINER\n", nodeId)
+		fmt.Printf("Starting Node %s as a MINER\n", ListenAddr)
 	} else {
-		fmt.Printf("Starting Node %s\n", nodeId)
+		fmt.Printf("Starting Node %s\n", ListenAddr)
 	}
 	if len(minerAddress) > 0 {
 		if wallet.ValidateAddres(minerAddress) {
@@ -31,7 +31,7 @@ func (cli *CommandLine) StartNode(nodeId, minerAddress string, miner bool) {
 		}
 	}
 
-	network.StartServer(nodeId, minerAddress)
+	network.StartServer(ListenAddr, minerAddress)
 }
 
 func (cli *CommandLine) Send(from string, to string, amount float64, mineNow bool) {
@@ -161,7 +161,7 @@ func main() {
 	defer os.Exit(0)
 	cli := &CommandLine{}
 	var address string
-	var nodeID string
+	var ListenAddr string
 	/*
 	* INIT COMMAND
 	 */
@@ -240,17 +240,17 @@ func main() {
 		Short: "start a node",
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-			if nodeID == "" {
-				nodeID = conf.NodeId
+			if ListenAddr == "" {
+				ListenAddr = conf.ListenAddr
 			}
 			if minerAddress == "" {
 				minerAddress = conf.MinerAddress
 			}
 
-			cli.StartNode(nodeID, address, miner)
+			cli.StartNode(ListenAddr, address, miner)
 		},
 	}
-	nodeCmd.Flags().StringVar(&nodeID, "nodeID", "", "Node ID")
+	nodeCmd.Flags().StringVar(&ListenAddr, "ListenAddr", "", "Node ID")
 	nodeCmd.Flags().StringVar(&minerAddress, "minerAddress", "", "Set miner address")
 	nodeCmd.Flags().BoolVar(&miner, "miner", conf.Miner, "Set as true if you are joining the network as a miner")
 
