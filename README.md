@@ -92,14 +92,11 @@ Get Balance
 | Type     | Content                                        |
 |:-----------|:-------------------------------------------------|
 | Go    | GetBalance(address string) string   |
-| JSON-RPC | {"jsonrpc":"2.0","method":"GetBalance","param
-s":["14RwDN6Pj4zFUzdjiB8qUkVMC1QvRG5Cmr"], "id":64}'   |
+| JSON-RPC | {"jsonrpc":"2.0","method":"GetBalance","params":["14RwDN6Pj4zFUzdjiB8qUkVMC1QvRG5Cmr"], "id":64}'   |
 
 Example 
 
-    curl -X CONNECT  --url http://127.0.0.1:1234/_goRPC_ HTTP
-/1.0 --data '{"jsonrpc":"2.0","method":"GetBalance","param
-s":["14RwDN6Pj4zFUzdjiB8qUkVMC1QvRG5Cmr"], "id":64}'
+    curl -X CONNECT  --url http://127.0.0.1:1234/_goRPC_ HTTP/1.0 --data '{"jsonrpc":"2.0","method":"GetBalance","params":["14RwDN6Pj4zFUzdjiB8qUkVMC1QvRG5Cmr"], "id":64}'
 
 ### Demon CLI
 
