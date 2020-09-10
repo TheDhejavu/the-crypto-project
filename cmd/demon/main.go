@@ -1,167 +1,20 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"os"
-	"strconv"
 
 	"github.com/spf13/cobra"
-	blockchain "github.com/workspace/the-crypto-project/core"
-	"github.com/workspace/the-crypto-project/network"
+	"github.com/workspace/the-crypto-project/cmd/utils"
+	jsonrpc "github.com/workspace/the-crypto-project/json-rpc"
 	"github.com/workspace/the-crypto-project/util/env"
-	"github.com/workspace/the-crypto-project/wallet"
 )
-
-type CommandLine struct {
-	Blockchain *blockchain.Blockchain
-}
-
-func (cli *CommandLine) StartNode(ListenAddr, minerAddress string, miner bool) {
-	if miner {
-		fmt.Printf("Starting Node %s as a MINER\n", ListenAddr)
-	} else {
-		fmt.Printf("Starting Node %s\n", ListenAddr)
-	}
-	if len(minerAddress) > 0 {
-		if wallet.ValidateAddres(minerAddress) {
-			fmt.Println("Mining is on. Address to receive rewards:", minerAddress)
-		} else {
-			log.Panic("Wrong Miner Address!")
-		}
-	}
-
-	network.StartServer(ListenAddr, minerAddress)
-}
-
-func (cli *CommandLine) Send(from string, to string, amount float64, mineNow bool) {
-
-	if !wallet.ValidateAddres(from) {
-		log.Panic("sendTo address is Invalid ")
-	}
-	if !wallet.ValidateAddres(to) {
-		log.Panic("sendFrom address is Invalid ")
-	}
-
-	chain := blockchain.ContinueBlockchain()
-
-	defer chain.Database.Close()
-	utxos := blockchain.UXTOSet{chain}
-	cwd := false
-	wallets, err := wallet.InitializeWallets(cwd)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	wallet := wallets.GetWallet(from)
-
-	tx := blockchain.NewTransaction(&wallet, to, amount, &utxos)
-
-	if mineNow {
-
-		cbTx := blockchain.MinerTx(from, "")
-		txs := []*blockchain.Transaction{cbTx, tx}
-		block := chain.MineBlock(txs)
-		utxos.Update(block)
-	} else {
-		network.SendTx(network.KnownNodes[0], tx)
-		fmt.Println("")
-	}
-	fmt.Println("Success!")
-}
-func (cli *CommandLine) CreateBlockchain(address string) {
-	if !wallet.ValidateAddres(address) {
-		log.Panic("Invalid address")
-	}
-
-	chain := blockchain.InitBlockchain(address)
-	defer chain.Database.Close()
-
-	utxos := blockchain.UXTOSet{chain}
-	utxos.Compute()
-	fmt.Println("Initialized Blockchain Successfully")
-}
-
-func (cli *CommandLine) ComputeUTXOs() {
-	chain := blockchain.ContinueBlockchain()
-	defer chain.Database.Close()
-
-	utxos := blockchain.UXTOSet{chain}
-	utxos.Compute()
-	count := utxos.CountTransactions()
-	fmt.Printf("Rebuild DONE!!!!, there are %d transactions in the utxos set", count)
-}
-func (cli *CommandLine) GetBalance(address string) {
-	if !wallet.ValidateAddres(address) {
-		log.Panic("Invalid address")
-	}
-	chain := blockchain.ContinueBlockchain()
-	defer chain.Database.Close()
-	balance := float64(0)
-	publicKeyHash := wallet.Base58Decode([]byte(address))
-	publicKeyHash = publicKeyHash[1 : len(publicKeyHash)-4]
-	utxos := blockchain.UXTOSet{chain}
-
-	UTXOs := utxos.FindUnSpentTransactions(publicKeyHash)
-	for _, out := range UTXOs {
-		balance += out.Value
-	}
-
-	fmt.Printf("Balance of %s:%f\n", address, balance)
-}
-
-func (cli *CommandLine) CreateWallet() {
-	cwd := false
-	wallets, _ := wallet.InitializeWallets(cwd)
-	address := wallets.AddWallet()
-	wallets.SaveFile(cwd)
-
-	fmt.Println(address)
-}
-
-func (cli *CommandLine) ListAddresses() {
-	cwd := false
-	wallets, err := wallet.InitializeWallets(cwd)
-	if err != nil {
-		log.Panic(err)
-	}
-	addresses := wallets.GetAllAddress()
-
-	for _, address := range addresses {
-		fmt.Println(address)
-	}
-}
-func (cli *CommandLine) PrintBlockchain() {
-	chain := blockchain.ContinueBlockchain()
-
-	defer chain.Database.Close()
-	iter := chain.Iterator()
-
-	for {
-		block := iter.Next()
-		fmt.Printf("PrevHash: %x\n", block.PrevHash)
-		fmt.Printf("Hash: %x\n", block.Hash)
-		fmt.Printf("Height: %d\n", block.Height)
-		pow := blockchain.NewProof(block)
-		validate := pow.Validate()
-		fmt.Printf("Valid: %s\n", strconv.FormatBool(validate))
-		for _, tx := range block.Transactions {
-			fmt.Println(tx)
-		}
-		fmt.Println()
-
-		if len(block.PrevHash) == 0 {
-			break
-		}
-	}
-}
 
 func main() {
 	var conf = env.New()
 	defer os.Exit(0)
-	cli := &CommandLine{}
+	cli := utils.CommandLine{}
 	var address string
-	var ListenAddr string
+	var ListenPort string
 	/*
 	* INIT COMMAND
 	 */
@@ -240,17 +93,17 @@ func main() {
 		Short: "start a node",
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-			if ListenAddr == "" {
-				ListenAddr = conf.ListenAddr
+			if ListenPort == "" {
+				ListenPort = conf.ListenPort
 			}
 			if minerAddress == "" {
 				minerAddress = conf.MinerAddress
 			}
 
-			cli.StartNode(ListenAddr, address, miner)
+			cli.StartNode(ListenPort, address, miner)
 		},
 	}
-	nodeCmd.Flags().StringVar(&ListenAddr, "ListenAddr", "", "Node ID")
+	nodeCmd.Flags().StringVar(&ListenPort, "ListenPort", "", "Node ID")
 	nodeCmd.Flags().StringVar(&minerAddress, "minerAddress", "", "Set miner address")
 	nodeCmd.Flags().BoolVar(&miner, "miner", conf.Miner, "Set as true if you are joining the network as a miner")
 
@@ -275,9 +128,25 @@ func main() {
 	sendCmd.Flags().Float64Var(&sendAmount, "sendAmount", float64(0), "Amount of token to send")
 	sendCmd.Flags().BoolVar(&mine, "mine", false, "Set if you want your Node to mine the transaction instantly")
 
-	var rootCmd = &cobra.Command{Use: "chain"}
+	var rpcPort int
+	var rpcAddr string
+	var rpc bool
+	var rootCmd = &cobra.Command{
+		Use: "demon",
+		Run: func(cmd *cobra.Command, args []string) {
+			if rpc {
+				jsonrpc.StartServer( rpc, rpcPort, rpcAddr )
+			}
+		},
+	}
 	rootCmd.PersistentFlags().StringVar(&address, "address", "", "Wallet address")
 
+	/*
+	* HTTP FLAGS
+	 */
+	rootCmd.PersistentFlags().IntVar(&rpcPort, "rpcPort", 0, " HTTP-RPC server listening port (default: 1245)")
+	rootCmd.PersistentFlags().StringVar(&rpcAddr, "rpcAddr", "", "HTTP-RPC server listening interface (default: localhost)")
+	rootCmd.PersistentFlags().BoolVar(&rpc, "rpc", false, "Enable the HTTP-RPC server")
 	rootCmd.AddCommand(
 		initCmd,
 		walletCmd,

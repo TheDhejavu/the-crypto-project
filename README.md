@@ -83,7 +83,25 @@ They are available to be used in new transactions (as long as you can unlock the
 
 ### Project Setup
 
-### Chain CommandLine
+
+### Interfacing with Blockchain Nodes (JSON-RPC)
+
+
+Get Balance
+
+| Type     | Content                                        |
+|:-----------|:-------------------------------------------------|
+| Go    | GetBalance(address string) string   |
+| JSON-RPC | {"jsonrpc":"2.0","method":"GetBalance","param
+s":["14RwDN6Pj4zFUzdjiB8qUkVMC1QvRG5Cmr"], "id":64}'   |
+
+Example 
+
+    curl -X CONNECT  --url http://127.0.0.1:1234/_goRPC_ HTTP
+/1.0 --data '{"jsonrpc":"2.0","method":"GetBalance","param
+s":["14RwDN6Pj4zFUzdjiB8qUkVMC1QvRG5Cmr"], "id":64}'
+
+### Demon CLI
 
 This is the official command line for the crypto project, this commandline allows developers to interact with the blockchain network
 
@@ -117,11 +135,11 @@ Send
 
 Start Node
 
-The minerAddress, miner and ListenAddr Flags are optional if this flags already exist in `.env` file
+The minerAddress, miner and ListenPort Flags are optional if this flags already exist in `.env` file
 
-    demon startnode --ListenAddr LISTEN_ADDR --minerAddress MINER_ADDRESS --miner
+    demon startnode --ListenPort LISTEN_ADDR --minerAddress MINER_ADDRESS --miner
 
-#### Command Help
+#### Command Usage
 
     Usage:
         demon [command]

@@ -20,7 +20,7 @@ var (
 type Config struct {
 	WalletAddressChecksum int
 	MinerAddress          string
-	ListenAddr            string
+	ListenPort            string
 	Miner                 bool
 }
 
@@ -28,7 +28,7 @@ func New() *Config {
 	return &Config{
 		WalletAddressChecksum: getEnvAsInt("WALLET_ADDRESS_CHECKSUM", 1),
 		MinerAddress:          getEnvAsStr("MINER_ADDRESS", ""),
-		ListenAddr:            getEnvAsStr("LISTEN_ADDR", ""),
+		ListenPort:            getEnvAsStr("LISTEN_ADDR", ""),
 		Miner:                 getEnvAsBool("MINER", false),
 	}
 }

@@ -448,8 +448,8 @@ func HandleConnection(conn net.Conn, chain *blockchain.Blockchain) {
 	}
 }
 
-func StartServer(ListenAddr, minerAddr string) {
-	nodeAddress = fmt.Sprintf("localhost:%s", ListenAddr)
+func StartServer(ListenPort, minerAddr string) {
+	nodeAddress = fmt.Sprintf("localhost:%s", ListenPort)
 	ln, err := net.Listen(protocol, nodeAddress)
 	minerAddress = minerAddr
 	if err != nil {

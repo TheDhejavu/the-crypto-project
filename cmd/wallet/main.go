@@ -62,6 +62,6 @@ func main() {
 	cmdPrint.PersistentFlags().StringVar(&Address, "address", "", "Wallet address")
 
 	var rootCmd = &cobra.Command{Use: "wallet"}
-	rootCmd.AddCommand(cmdGenerate, cmdPrint)
+	rootCmd.AddCommand(cmdNew, cmdPrint)
 	rootCmd.Execute()
 }
