@@ -91,12 +91,12 @@ Get Balance
 
 | Type     | Content                                        |
 |:-----------|:-------------------------------------------------|
-| Go    | GetBalance(address string) string   |
-| JSON-RPC | {"method":"GetBalance","params":["14RwDN6Pj4zFUzdjiB8qUkVMC1QvRG5Cmr"] |
+| Go    | GetBalance(address string) string {}  |
+| JSON-RPC | {"method":"PublicCryptoAPI.GetBalance","params":["14RwDN6Pj4zFUzdjiB8qUkVMC1QvRG5Cmr"] |
 
 Example 
 
-    curl -X CONNECT  --url http://127.0.0.1:1234/_goRPC_ HTTP/1.0 --data '{"jsonrpc":"2.0","method":"GetBalance","params":["14RwDN6Pj4zFUzdjiB8qUkVMC1QvRG5Cmr"], "id":64}'
+    curl -X POST -H "Content-Type: application/json" -d '{"id": 1, "method": "PublicCryptoAPI.GetBalance", "params": [{"Address":"1EWXfMkVj3dAytVuUEHUdoAKdEfAH99rxa"}]}' http://localhost:5000/_jsonrpc
 
 ### Demon CLI
 

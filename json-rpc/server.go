@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -17,8 +18,21 @@ type PublicCryptoAPI struct {
 	cmd        *utils.CommandLine
 }
 
-func (api *PublicCryptoAPI) GetBalance(address *string, balance *string) error {
-	*balance = api.cmd.GetBalance(*address)
+type HttpConn struct {
+	in  io.Reader
+	out io.Writer
+}
+
+func (c *HttpConn) Read(p []byte) (n int, err error)  { return c.in.Read(p) }
+func (c *HttpConn) Write(d []byte) (n int, err error) { return c.out.Write(d) }
+func (c *HttpConn) Close() error                      { return nil }
+
+type Args struct {
+	Address string
+}
+
+func (api *PublicCryptoAPI) GetBalance(args Args, balance *string) error {
+	*balance = api.cmd.GetBalance(args.Address)
 	return nil
 }
 
@@ -30,23 +44,41 @@ func StartServer(rpcEnabled bool, rpcPort int, rpcAddr string) {
 	}
 	err := rpc.Register(publicAPI)
 	checkError("Error registering API", err)
-
 	rpc.HandleHTTP()
 
-	tcpAddr, err := net.ResolveTCPAddr("tcp", ":1234")
+	tcpAddr, err := net.ResolveTCPAddr("tcp", ":5000")
 	checkError("Listener error:", err)
 
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	checkError("Error serving:", err)
 
-	http.Serve(listener, nil)
-	log.Printf("Serving rpc on port %d", 1234)
+	// sample test endpoint
+	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
+		io.WriteString(res, "RPC SERVER LIVE!")
+	})
+	log.Printf("Serving rpc on port %d", 5000)
+
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
 			continue
 		}
 		jsonrpc.ServeConn(conn)
+		http.Serve(listener, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+			if r.URL.Path == "/_jsonrpc" {
+				serverCodec := jsonrpc.NewServerCodec(&HttpConn{in: r.Body, out: w})
+				w.Header().Set("Content-type", "application/json")
+				w.WriteHeader(200)
+				err := rpc.ServeRequest(serverCodec)
+				if err != nil {
+					log.Printf("Error while serving JSON request: %v", err)
+					http.Error(w, "Error while serving JSON request, details have been logged.", 500)
+					return
+				}
+			}
+
+		}))
 	}
 
 }
