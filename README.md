@@ -92,7 +92,7 @@ Get Balance
 | Type     | Content                                        |
 |:-----------|:-------------------------------------------------|
 | Go    | GetBalance(address string) string   |
-| JSON-RPC | {"jsonrpc":"2.0","method":"GetBalance","params":["14RwDN6Pj4zFUzdjiB8qUkVMC1QvRG5Cmr"], "id":64}'   |
+| JSON-RPC | {"method":"GetBalance","params":["14RwDN6Pj4zFUzdjiB8qUkVMC1QvRG5Cmr"] |
 
 Example 
 
