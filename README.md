@@ -139,20 +139,27 @@ The minerAddress, miner and ListenPort Flags are optional if this flags already 
 #### Command Usage
 
     Usage:
+        demon [flags]
         demon [command]
 
     Available Commands:
-        computeutxos    Re-build and Compute Unspent transaction outputs
-        help            Help about any command
-        init            Initialize the blockchain and create the genesis block
-        print           Print the blocks in the blockchain
-        send            Send x amount of token to address from local wallet address
-        startnode       start a node
-        wallet          Manage wallets
+        computeutxos Re-build and Compute Unspent transaction outputs
+        help         Help about any command
+        init         Initialize the blockchain and create the genesis block
+        print        Print the blocks in the blockchain
+        send         Send x amount of token to address from local
+        wallet address
+        startnode    start a node
+        wallet       Manage wallets
 
     Flags:
-        --address string   Wallet address
-        -h, --help         help for chain
+            --address string   Wallet address
+        -h, --help             help for demon
+            --rpc              Enable the HTTP-RPC server
+            --rpcAddr string   HTTP-RPC server listening interface (default: localhost)
+            --rpcPort int       HTTP-RPC server listening port (default: 1245)
+
+    Use "demon [command] --help" for more information about a command.
 
 ## TODO
 
