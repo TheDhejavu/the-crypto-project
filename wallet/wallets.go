@@ -19,7 +19,7 @@ var (
 	// Root folder of this project
 	Root            = filepath.Join(filepath.Dir(b), "../")
 	walletsPath     = path.Join(Root, "/tmp/")
-	walletsFilename = "wallets.data"
+	walletsFilename = ".data"
 )
 
 type Wallets struct {

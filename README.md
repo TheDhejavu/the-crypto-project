@@ -92,11 +92,23 @@ Get Balance
 | Type     | Content                                        |
 |:-----------|:-------------------------------------------------|
 | Go    | GetBalance(address string) string {}  |
-| JSON-RPC | {"method":"PublicCryptoAPI.GetBalance","params":["14RwDN6Pj4zFUzdjiB8qUkVMC1QvRG5Cmr"] |
+| JSON-RPC | {"method":"API.GetBalance","params":["14RwDN6Pj4zFUzdjiB8qUkVMC1QvRG5Cmr"] |
 
 Example 
 
-    curl -X POST -H "Content-Type: application/json" -d '{"id": 1, "method": "PublicCryptoAPI.GetBalance", "params": [{"Address":"1EWXfMkVj3dAytVuUEHUdoAKdEfAH99rxa"}]}' http://localhost:5000/_jsonrpc
+    curl -X POST -H "Content-Type: application/json" -d '{"id": 1, "method": "API.GetBalance", "params": [{"Address":"1EWXfMkVj3dAytVuUEHUdoAKdEfAH99rxa"}]}' http://localhost:5000/_jsonrpc
+
+
+Create Wallet
+
+| Type     | Content                                        |
+|:-----------|:-------------------------------------------------|
+| Go    | CreateWalet() string {}  |
+| JSON-RPC | {"method":"API.GetBalance","params":["14RwDN6Pj4zFUzdjiB8qUkVMC1QvRG5Cmr"] |
+
+Example 
+
+    curl -X POST -H "Content-Type: application/json" -d '{"id": 1, "method": "API.CreateWallet", "params": []}' http://localhost:5000/_jsonrpc
 
 ### Demon CLI
 
@@ -134,7 +146,7 @@ Start Node
 
 The minerAddress, miner and ListenPort Flags are optional if this flags already exist in `.env` file
 
-    demon startnode --ListenPort LISTEN_ADDR --minerAddress MINER_ADDRESS --miner
+    demon startnode --ListenPort PORT --minerAddress MINER_ADDRESS --miner
 
 #### Command Usage
 

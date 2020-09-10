@@ -109,13 +109,14 @@ func (cli *CommandLine) GetBalance(address string) string {
 	return fmt.Sprintf("Balance of %s:%f", address, balance)
 }
 
-func (cli *CommandLine) CreateWallet() {
+func (cli *CommandLine) CreateWallet() string {
 	cwd := false
 	wallets, _ := wallet.InitializeWallets(cwd)
 	address := wallets.AddWallet()
 	wallets.SaveFile(cwd)
 
 	fmt.Println(address)
+	return address
 }
 
 func (cli *CommandLine) ListAddresses() {

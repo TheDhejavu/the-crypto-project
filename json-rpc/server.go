@@ -13,7 +13,7 @@ import (
 	"github.com/workspace/the-crypto-project/cmd/utils"
 )
 
-type PublicCryptoAPI struct {
+type API struct {
 	RPCEnabled bool
 	cmd        *utils.CommandLine
 }
@@ -31,14 +31,21 @@ type Args struct {
 	Address string
 }
 
-func (api *PublicCryptoAPI) GetBalance(args Args, balance *string) error {
+type NoneArgs struct{}
+
+func (api *API) GetBalance(args Args, balance *string) error {
 	*balance = api.cmd.GetBalance(args.Address)
+	return nil
+}
+
+func (api *API) CreateWallet(args NoneArgs, address *string) error {
+	*address = api.cmd.CreateWallet()
 	return nil
 }
 
 func StartServer(rpcEnabled bool, rpcPort int, rpcAddr string) {
 
-	publicAPI := &PublicCryptoAPI{
+	publicAPI := &API{
 		rpcEnabled,
 		&utils.CommandLine{},
 	}
