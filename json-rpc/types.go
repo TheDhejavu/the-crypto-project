@@ -12,10 +12,10 @@ type Args struct {
 }
 
 type SendArgs struct {
-	sendFrom string
-	sendTo   string
-	amount   float64
-	mine     bool
+	SendFrom string
+	SendTo   string
+	Amount   float64
+	Mine     bool
 }
 type Blocks []*blockchain.Block
 
@@ -41,6 +41,5 @@ func (bs *Blocks) MarshalJSON() ([]byte, error) {
 		}
 	}
 	buffer.WriteString("]")
-	fmt.Println(string(buffer.Bytes()))
 	return buffer.Bytes(), nil
 }

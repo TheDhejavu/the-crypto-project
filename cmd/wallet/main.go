@@ -43,7 +43,7 @@ func main() {
 			var address string
 			wallets, _ := wallet.InitializeWallets(cwd)
 			if Address != "" {
-				if !wallet.ValidateAddres(Address) {
+				if !wallet.ValidateAddress(Address) {
 					log.Panic("Invalid address")
 				}
 				w = wallets.GetWallet(Address)

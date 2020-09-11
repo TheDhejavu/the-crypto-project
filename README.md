@@ -84,7 +84,7 @@ They are available to be used in new transactions (as long as you can unlock the
 ### Project Setup
 
 
-### Interfacing with Blockchain Nodes (JSON-RPC)
+### Interfacing with Blockchain Node (JSON-RPC)
 
 
 Get Balance
@@ -108,11 +108,11 @@ Example
     curl -X POST -H "Content-Type: application/json" -d '{"id": 1,"method": "API.GetBlockchainData", "params": []}' http://localhost:5000/_jsonrpc
 
 
-Send coins
+Send
 
 Example
 
-    curl -X POST -H "Content-Type: application/json" -d '{"id": 1 ,"method": "API.Send", "params": [{"sendTo":"1D214Jcep7x7zPphLGsLdS1hHaxn", "sendFrom":"15ViKshPBH6SzKun1UwmHpbAKD2mKZNtBU", "amount": 50,"mine": true}]}' http://localhost:5000/_jsonrpc
+    curl -X POST -H "Content-Type: application/json" -d '{"id": 1 , "method": "API.Send", "params": [{"sendFrom":"1D214Jcep7x7zPphLGsLdS1hHaxnwTatCW","sendTo": "15ViKshPBH6SzKun1UwmHpbAKD2mKZNtBU", "amount":0.50, "mine": true}]}' http://localhost:5000/_jsonrpc
 
 ### Demon CLI
 

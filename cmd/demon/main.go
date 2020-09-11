@@ -103,7 +103,7 @@ func main() {
 			cli.StartNode(ListenPort, address, miner)
 		},
 	}
-	nodeCmd.Flags().StringVar(&ListenPort, "ListenPort", "", "Node ID")
+	nodeCmd.Flags().StringVar(&ListenPort, "port", "", "Node ID")
 	nodeCmd.Flags().StringVar(&minerAddress, "minerAddress", "", "Set miner address")
 	nodeCmd.Flags().BoolVar(&miner, "miner", conf.Miner, "Set as true if you are joining the network as a miner")
 
@@ -128,7 +128,7 @@ func main() {
 	sendCmd.Flags().Float64Var(&amount, "amount", float64(0), "Amount of token to send")
 	sendCmd.Flags().BoolVar(&mine, "mine", false, "Set if you want your Node to mine the transaction instantly")
 
-	var rpcPort int
+	var rpcPort string
 	var rpcAddr string
 	var rpc bool
 	var rootCmd = &cobra.Command{
@@ -144,7 +144,7 @@ func main() {
 	/*
 	* HTTP FLAGS
 	 */
-	rootCmd.PersistentFlags().IntVar(&rpcPort, "rpcPort", 0, " HTTP-RPC server listening port (default: 1245)")
+	rootCmd.PersistentFlags().StringVar(&rpcPort, "rpcPort", "", " HTTP-RPC server listening port (default: 1245)")
 	rootCmd.PersistentFlags().StringVar(&rpcAddr, "rpcAddr", "", "HTTP-RPC server listening interface (default: localhost)")
 	rootCmd.PersistentFlags().BoolVar(&rpc, "rpc", false, "Enable the HTTP-RPC server")
 	rootCmd.AddCommand(

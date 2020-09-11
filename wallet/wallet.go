@@ -15,7 +15,7 @@ import (
 var conf = env.New()
 var (
 	checkSumlength = conf.WalletAddressChecksum
-	version           = byte(0x00) // hexadecimal representation of zero
+	version        = byte(0x00) // hexadecimal representation of zero
 )
 
 // https://golang.org/pkg/crypto/ecdsa/
@@ -26,7 +26,10 @@ type Wallet struct {
 }
 
 // Validate Wallet Address
-func ValidateAddres(address string) bool {
+func ValidateAddress(address string) bool {
+	if len(address) != 34 {
+		log.Fatalf("Invalid address")
+	}
 	//Convert the address to public key hash
 	fullHash := Base58Decode([]byte(address))
 	// Get the checkSum from Address

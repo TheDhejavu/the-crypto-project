@@ -27,7 +27,7 @@ func (c *HttpConn) Read(p []byte) (n int, err error)  { return c.in.Read(p) }
 func (c *HttpConn) Write(d []byte) (n int, err error) { return c.out.Write(d) }
 func (c *HttpConn) Close() error                      { return nil }
 
-func (api *API) GetBalance(args Args, balance *string) error {
+func (api *API) GetBalance(args Args, balance *utils.BalanceResponse) error {
 	*balance = api.cmd.GetBalance(args.Address)
 	return nil
 }
@@ -42,13 +42,17 @@ func (api *API) GetBlockchainData(args SendArgs, data *Blocks) error {
 	return nil
 }
 
-func (api *API) Send(args SendArgs, data *string) error {
-	*data = api.cmd.Send(args.sendFrom, args.sendTo, args.amount, args.mine)
+func (api *API) Send(args SendArgs, data *utils.SendResponse) error {
+	fmt.Println(args)
+	*data = api.cmd.Send(args.SendFrom, args.SendTo, args.Amount, args.Mine)
 	return nil
 }
 
-func StartServer(rpcEnabled bool, rpcPort int, rpcAddr string) {
-
+func StartServer(rpcEnabled bool, rpcPort string, rpcAddr string) {
+	var port = "5000"
+	if rpcPort != "" {
+		port = rpcPort
+	}
 	publicAPI := &API{
 		rpcEnabled,
 		&utils.CommandLine{},
@@ -57,7 +61,7 @@ func StartServer(rpcEnabled bool, rpcPort int, rpcAddr string) {
 	checkError("Error registering API", err)
 	rpc.HandleHTTP()
 
-	tcpAddr, err := net.ResolveTCPAddr("tcp", ":5000")
+	tcpAddr, err := net.ResolveTCPAddr("tcp", rpcAddr+":"+port)
 	checkError("Listener error:", err)
 
 	listener, err := net.ListenTCP("tcp", tcpAddr)
@@ -67,7 +71,7 @@ func StartServer(rpcEnabled bool, rpcPort int, rpcAddr string) {
 	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
 		io.WriteString(res, "RPC SERVER LIVE!")
 	})
-	log.Printf("Serving rpc on port %d", 5000)
+	log.Printf("Serving rpc on port %s", port)
 
 	for {
 		conn, err := listener.Accept()

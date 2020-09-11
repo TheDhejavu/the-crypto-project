@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	blockchain "github.com/workspace/the-crypto-project/core"
 	"github.com/workspace/the-crypto-project/network"
@@ -14,6 +15,19 @@ type CommandLine struct {
 	Blockchain *blockchain.Blockchain
 }
 
+type BalanceResponse struct {
+	Balance   float64
+	Address   string
+	Timestamp int64
+}
+
+type SendResponse struct {
+	SendTo    string
+	SendFrom  string
+	Amount    float64
+	Timestamp int64
+}
+
 func (cli *CommandLine) StartNode(ListenPort, minerAddress string, miner bool) {
 	if miner {
 		fmt.Printf("Starting Node %s as a MINER\n", ListenPort)
@@ -21,7 +35,7 @@ func (cli *CommandLine) StartNode(ListenPort, minerAddress string, miner bool) {
 		fmt.Printf("Starting Node %s\n", ListenPort)
 	}
 	if len(minerAddress) > 0 {
-		if wallet.ValidateAddres(minerAddress) {
+		if wallet.ValidateAddress(minerAddress) {
 			fmt.Println("Mining is on. Address to receive rewards:", minerAddress)
 		} else {
 			log.Panic("Wrong Miner Address!")
@@ -31,12 +45,12 @@ func (cli *CommandLine) StartNode(ListenPort, minerAddress string, miner bool) {
 	network.StartServer(ListenPort, minerAddress)
 }
 
-func (cli *CommandLine) Send(from string, to string, amount float64, mineNow bool) string {
+func (cli *CommandLine) Send(from string, to string, amount float64, mineNow bool) SendResponse {
 
-	if !wallet.ValidateAddres(from) {
+	if !wallet.ValidateAddress(from) {
 		log.Panic("sendTo address is Invalid ")
 	}
-	if !wallet.ValidateAddres(to) {
+	if !wallet.ValidateAddress(to) {
 		log.Panic("sendFrom address is Invalid ")
 	}
 
@@ -66,10 +80,15 @@ func (cli *CommandLine) Send(from string, to string, amount float64, mineNow boo
 	}
 	fmt.Println("Success!")
 
-	return "Successfully sent"
+	return SendResponse{
+		SendTo:    to,
+		SendFrom:  from,
+		Amount:    amount,
+		Timestamp: time.Now().Unix(),
+	}
 }
 func (cli *CommandLine) CreateBlockchain(address string) {
-	if !wallet.ValidateAddres(address) {
+	if !wallet.ValidateAddress(address) {
 		log.Panic("Invalid address")
 	}
 
@@ -90,8 +109,8 @@ func (cli *CommandLine) ComputeUTXOs() {
 	count := utxos.CountTransactions()
 	fmt.Printf("Rebuild DONE!!!!, there are %d transactions in the utxos set", count)
 }
-func (cli *CommandLine) GetBalance(address string) string {
-	if !wallet.ValidateAddres(address) {
+func (cli *CommandLine) GetBalance(address string) BalanceResponse {
+	if !wallet.ValidateAddress(address) {
 		log.Panic("Invalid address")
 	}
 	chain := blockchain.ContinueBlockchain()
@@ -108,7 +127,11 @@ func (cli *CommandLine) GetBalance(address string) string {
 
 	fmt.Printf("Balance of %s:%f\n", address, balance)
 
-	return fmt.Sprintf("Balance of %s:%f", address, balance)
+	return BalanceResponse{
+		balance,
+		address,
+		time.Now().Unix(),
+	}
 }
 
 func (cli *CommandLine) CreateWallet() string {
