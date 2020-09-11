@@ -27,19 +27,23 @@ func (c *HttpConn) Read(p []byte) (n int, err error)  { return c.in.Read(p) }
 func (c *HttpConn) Write(d []byte) (n int, err error) { return c.out.Write(d) }
 func (c *HttpConn) Close() error                      { return nil }
 
-type Args struct {
-	Address string
-}
-
-type NoneArgs struct{}
-
 func (api *API) GetBalance(args Args, balance *string) error {
 	*balance = api.cmd.GetBalance(args.Address)
 	return nil
 }
 
-func (api *API) CreateWallet(args NoneArgs, address *string) error {
+func (api *API) CreateWallet(args Args, address *string) error {
 	*address = api.cmd.CreateWallet()
+	return nil
+}
+
+func (api *API) GetBlockchainData(args SendArgs, data *Blocks) error {
+	*data = api.cmd.GetBlockchainData()
+	return nil
+}
+
+func (api *API) Send(args SendArgs, data *string) error {
+	*data = api.cmd.Send(args.sendFrom, args.sendTo, args.amount, args.mine)
 	return nil
 }
 
@@ -84,7 +88,6 @@ func StartServer(rpcEnabled bool, rpcPort int, rpcAddr string) {
 					return
 				}
 			}
-
 		}))
 	}
 

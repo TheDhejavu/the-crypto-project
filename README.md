@@ -110,6 +110,30 @@ Example
 
     curl -X POST -H "Content-Type: application/json" -d '{"id": 1, "method": "API.CreateWallet", "params": []}' http://localhost:5000/_jsonrpc
 
+
+Get Blockchain Data
+
+| Type     | Content                                        |
+|:-----------|:-------------------------------------------------|
+| Go    | GetBlockchainData() string {}  |
+| JSON-RPC | {"method": "API.GetBlockchainData", "params": [] |
+
+Example 
+
+    curl -X POST -H "Content-Type: application/json" -d '{"id": 1,"method": "API.GetBlockchainData", "params": []}' http://localhost:5000/_jsonrpc
+
+
+Send coins
+
+| Type     | Content                                        |
+|:-----------|:-------------------------------------------------|
+| Go    | Send(from string, to string, amount float64, mineNow bool )string  {} |
+| JSON-RPC | {"method": "API.Send", "params": [] |
+
+Example
+
+   curl -X POST -H "Content-Type: application/json" -d '{"id": 1 ,"method": "API.Send", "params": [{"sendTo":"1D214Jcep7x7zPphLGsLdS1hHaxn", "sendFrom":"15ViKshPBH6SzKun1UwmHpbAKD2mKZNtBU", "amount": 50,"mine": true}]}' http://localhost:5000/_jsonrpc
+
 ### Demon CLI
 
 This is the official command line for the crypto project, this commandline allows developers to interact with the blockchain network

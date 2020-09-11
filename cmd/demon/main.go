@@ -113,19 +113,19 @@ func main() {
 	var mine bool
 	var sendFrom string
 	var sendTo string
-	var sendAmount float64
+	var amount float64
 
 	var sendCmd = &cobra.Command{
 		Use:   "send",
 		Short: "Send x amount of token to address from local wallet address",
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-			cli.Send(sendFrom, sendTo, sendAmount, mine)
+			cli.Send(sendFrom, sendTo, amount, mine)
 		},
 	}
 	sendCmd.Flags().StringVar(&sendFrom, "sendFrom", "", "Sender's wallet address")
 	sendCmd.Flags().StringVar(&sendTo, "sendTo", "", "Reciever's wallet address")
-	sendCmd.Flags().Float64Var(&sendAmount, "sendAmount", float64(0), "Amount of token to send")
+	sendCmd.Flags().Float64Var(&amount, "amount", float64(0), "Amount of token to send")
 	sendCmd.Flags().BoolVar(&mine, "mine", false, "Set if you want your Node to mine the transaction instantly")
 
 	var rpcPort int
@@ -135,7 +135,7 @@ func main() {
 		Use: "demon",
 		Run: func(cmd *cobra.Command, args []string) {
 			if rpc {
-				jsonrpc.StartServer( rpc, rpcPort, rpcAddr )
+				jsonrpc.StartServer(rpc, rpcPort, rpcAddr)
 			}
 		},
 	}

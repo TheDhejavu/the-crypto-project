@@ -31,7 +31,7 @@ func (cli *CommandLine) StartNode(ListenPort, minerAddress string, miner bool) {
 	network.StartServer(ListenPort, minerAddress)
 }
 
-func (cli *CommandLine) Send(from string, to string, amount float64, mineNow bool) {
+func (cli *CommandLine) Send(from string, to string, amount float64, mineNow bool) string {
 
 	if !wallet.ValidateAddres(from) {
 		log.Panic("sendTo address is Invalid ")
@@ -65,6 +65,8 @@ func (cli *CommandLine) Send(from string, to string, amount float64, mineNow boo
 		fmt.Println("")
 	}
 	fmt.Println("Success!")
+
+	return "Successfully sent"
 }
 func (cli *CommandLine) CreateBlockchain(address string) {
 	if !wallet.ValidateAddres(address) {
@@ -154,4 +156,23 @@ func (cli *CommandLine) PrintBlockchain() {
 			break
 		}
 	}
+}
+
+func (cli *CommandLine) GetBlockchainData() []*blockchain.Block {
+	var blocks []*blockchain.Block
+	chain := blockchain.ContinueBlockchain()
+
+	defer chain.Database.Close()
+	iter := chain.Iterator()
+
+	for {
+		block := iter.Next()
+		blocks = append(blocks, block)
+
+		if len(block.PrevHash) == 0 {
+			break
+		}
+	}
+
+	return blocks
 }

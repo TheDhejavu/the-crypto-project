@@ -7,7 +7,7 @@ import (
 )
 
 type Block struct {
-	Timestamp    int64
+	Timestamp    int64 `json:"string"`
 	Hash         []byte
 	PrevHash     []byte
 	Transactions []*Transaction
