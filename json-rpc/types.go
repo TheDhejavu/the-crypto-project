@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"bytes"
-	"fmt"
 
 	blockchain "github.com/workspace/the-crypto-project/core"
 )
@@ -17,24 +16,19 @@ type SendArgs struct {
 	Amount   float64
 	Mine     bool
 }
+
+type BlockArgs struct {
+	Address string
+	Height  int
+}
+
 type Blocks []*blockchain.Block
 
 func (bs *Blocks) MarshalJSON() ([]byte, error) {
 	buffer := bytes.NewBufferString("[")
 	count := len(*bs)
 	for _, block := range *bs {
-		buffer.WriteString("{")
-		buffer.WriteString(fmt.Sprintf("\"%s\":\"%d\",", "Timestamp", block.Timestamp))
-		buffer.WriteString(fmt.Sprintf("\"%s\":\"%x\",", "PrevHash", block.PrevHash))
-
-		buffer.WriteString(fmt.Sprintf("\"%s\":\"%x\",", "Hash", block.Hash))
-
-		buffer.WriteString(fmt.Sprintf("\"%s\":%d,", "Difficulty", block.Difficulty))
-
-		buffer.WriteString(fmt.Sprintf("\"%s\":%d,", "Nonce", block.Nonce))
-
-		buffer.WriteString(fmt.Sprintf("\"%s\":\"%x\"", "MerkleRoot", block.MerkleRoot))
-		buffer.WriteString("}")
+		blockchain.ConstructJSON(buffer, block)
 		count -= 1
 		if count != 0 {
 			buffer.WriteString(",")

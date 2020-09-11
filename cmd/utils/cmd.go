@@ -181,7 +181,7 @@ func (cli *CommandLine) PrintBlockchain() {
 	}
 }
 
-func (cli *CommandLine) GetBlockchainData() []*blockchain.Block {
+func (cli *CommandLine) GetBlockchain() []*blockchain.Block {
 	var blocks []*blockchain.Block
 	chain := blockchain.ContinueBlockchain()
 
@@ -198,4 +198,24 @@ func (cli *CommandLine) GetBlockchainData() []*blockchain.Block {
 	}
 
 	return blocks
+}
+
+func (cli *CommandLine) GetBlockByHeight(height int) blockchain.Block {
+	var block blockchain.Block
+	chain := blockchain.ContinueBlockchain()
+
+	defer chain.Database.Close()
+	iter := chain.Iterator()
+
+	for {
+		block = *iter.Next()
+		if block.Height == height-1 {
+			return block
+		}
+		if len(block.PrevHash) == 0 {
+			break
+		}
+	}
+
+	return block
 }

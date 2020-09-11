@@ -3,11 +3,12 @@ package blockchain
 import (
 	"bytes"
 	"encoding/gob"
+	"fmt"
 	"time"
 )
 
 type Block struct {
-	Timestamp    int64 `json:"string"`
+	Timestamp    int64
 	Hash         []byte
 	PrevHash     []byte
 	Transactions []*Transaction
@@ -88,4 +89,26 @@ func IsBlockValid(newBlock, oldBlock Block) bool {
 	}
 
 	return true
+}
+
+func ConstructJSON(buffer *bytes.Buffer, block *Block) {
+	buffer.WriteString("{")
+	buffer.WriteString(fmt.Sprintf("\"%s\":\"%d\",", "Timestamp", block.Timestamp))
+	buffer.WriteString(fmt.Sprintf("\"%s\":\"%x\",", "PrevHash", block.PrevHash))
+
+	buffer.WriteString(fmt.Sprintf("\"%s\":\"%x\",", "Hash", block.Hash))
+
+	buffer.WriteString(fmt.Sprintf("\"%s\":%d,", "Difficulty", block.Difficulty))
+
+	buffer.WriteString(fmt.Sprintf("\"%s\":%d,", "Nonce", block.Nonce))
+
+	buffer.WriteString(fmt.Sprintf("\"%s\":\"%x\"", "MerkleRoot", block.MerkleRoot))
+	buffer.WriteString("}")
+}
+
+func (bs *Block) MarshalJSON() ([]byte, error) {
+	buffer := bytes.NewBufferString("[")
+	ConstructJSON(buffer, bs)
+	buffer.WriteString("]")
+	return buffer.Bytes(), nil
 }

@@ -11,6 +11,7 @@ import (
 	"os"
 
 	"github.com/workspace/the-crypto-project/cmd/utils"
+	blockchain "github.com/workspace/the-crypto-project/core"
 )
 
 type API struct {
@@ -27,18 +28,23 @@ func (c *HttpConn) Read(p []byte) (n int, err error)  { return c.in.Read(p) }
 func (c *HttpConn) Write(d []byte) (n int, err error) { return c.out.Write(d) }
 func (c *HttpConn) Close() error                      { return nil }
 
-func (api *API) GetBalance(args Args, balance *utils.BalanceResponse) error {
-	*balance = api.cmd.GetBalance(args.Address)
-	return nil
-}
-
 func (api *API) CreateWallet(args Args, address *string) error {
 	*address = api.cmd.CreateWallet()
 	return nil
 }
 
-func (api *API) GetBlockchainData(args SendArgs, data *Blocks) error {
-	*data = api.cmd.GetBlockchainData()
+func (api *API) GetBalance(args Args, balance *utils.BalanceResponse) error {
+	*balance = api.cmd.GetBalance(args.Address)
+	return nil
+}
+
+func (api *API) GetBlockchain(args Args, data *Blocks) error {
+	*data = api.cmd.GetBlockchain()
+	return nil
+}
+
+func (api *API) GetBlockByHeight(args BlockArgs, data *blockchain.Block) error {
+	*data = api.cmd.GetBlockByHeight(args.Height)
 	return nil
 }
 

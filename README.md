@@ -87,13 +87,6 @@ They are available to be used in new transactions (as long as you can unlock the
 ### Interfacing with Blockchain Node (JSON-RPC)
 
 
-Get Balance
-
-Example 
-
-    curl -X POST -H "Content-Type: application/json" -d '{"id": 1, "method": "API.GetBalance", "params": [{"Address":"1EWXfMkVj3dAytVuUEHUdoAKdEfAH99rxa"}]}' http://localhost:5000/_jsonrpc
-
-
 Create Wallet
 
 Example 
@@ -101,11 +94,27 @@ Example
     curl -X POST -H "Content-Type: application/json" -d '{"id": 1, "method": "API.CreateWallet", "params": []}' http://localhost:5000/_jsonrpc
 
 
-Get Blockchain Data
+
+Get Balance
 
 Example 
 
-    curl -X POST -H "Content-Type: application/json" -d '{"id": 1,"method": "API.GetBlockchainData", "params": []}' http://localhost:5000/_jsonrpc
+    curl -X POST -H "Content-Type: application/json" -d '{"id": 1, "method": "API.GetBalance", "params": [{"Address":"1EWXfMkVj3dAytVuUEHUdoAKdEfAH99rxa"}]}' http://localhost:5000/_jsonrpc
+
+
+
+Get Blockchain
+
+Example 
+
+    curl -X POST -H "Content-Type: application/json" -d '{"id": 1,"method": "API.GetBlockchain", "params": []}' http://localhost:5000/_jsonrpc
+
+
+Get Block by Height
+
+Example 
+
+    curl -X POST -H "Content-Type: application/json" -d '{"id": 1,"method": "API.GetBlockByHeight", "params": ["Height":1]}' http://localhost:5000/_jsonrpc
 
 
 Send
