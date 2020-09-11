@@ -89,22 +89,12 @@ They are available to be used in new transactions (as long as you can unlock the
 
 Get Balance
 
-| Type     | Content                                        |
-|:-----------|:-------------------------------------------------|
-| Go    | GetBalance(address string) string {}  |
-| JSON-RPC | {"method":"API.GetBalance","params":["14RwDN6Pj4zFUzdjiB8qUkVMC1QvRG5Cmr"] |
-
 Example 
 
     curl -X POST -H "Content-Type: application/json" -d '{"id": 1, "method": "API.GetBalance", "params": [{"Address":"1EWXfMkVj3dAytVuUEHUdoAKdEfAH99rxa"}]}' http://localhost:5000/_jsonrpc
 
 
 Create Wallet
-
-| Type     | Content                                        |
-|:-----------|:-------------------------------------------------|
-| Go    | CreateWalet() string {}  |
-| JSON-RPC | {"method":"API.GetBalance","params":["14RwDN6Pj4zFUzdjiB8qUkVMC1QvRG5Cmr"] |
 
 Example 
 
@@ -113,22 +103,12 @@ Example
 
 Get Blockchain Data
 
-| Type     | Content                                        |
-|:-----------|:-------------------------------------------------|
-| Go    | GetBlockchainData() string {}  |
-| JSON-RPC | {"method": "API.GetBlockchainData", "params": [] |
-
 Example 
 
     curl -X POST -H "Content-Type: application/json" -d '{"id": 1,"method": "API.GetBlockchainData", "params": []}' http://localhost:5000/_jsonrpc
 
 
 Send coins
-
-| Type     | Content                                        |
-|:-----------|:-------------------------------------------------|
-| Go    | Send(from string, to string, amount float64, mineNow bool )string  {} |
-| JSON-RPC | {"method": "API.Send", "params": [] |
 
 Example
 
