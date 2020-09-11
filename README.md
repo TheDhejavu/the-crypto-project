@@ -120,7 +120,7 @@ Get Blockchain Data
 
 Example 
 
-    curl -X POST -H "Content-Type: application/json" -d '{"id": 1,"method": "API.GetBlockchainData", "params": []}' http://localhost:5000/_jsonrpc
+        curl -X POST -H "Content-Type: application/json" -d '{"id": 1,"method": "API.GetBlockchainData", "params": []}' http://localhost:5000/_jsonrpc
 
 
 Send coins
