@@ -3,16 +3,20 @@ package chat
 import (
 	"bufio"
 	"context"
+	"crypto/rand"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"sync"
 
 	"github.com/libp2p/go-libp2p"
+	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	discovery "github.com/libp2p/go-libp2p-discovery"
+	secio "github.com/libp2p/go-libp2p-secio"
 
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	multiaddr "github.com/multiformats/go-multiaddr"
@@ -36,11 +40,11 @@ func handleStream(stream network.Stream) {
 
 func readData(rw *bufio.ReadWriter) {
 	for {
-		str, err := rw.ReadString('\n')
-		if err != nil {
-			fmt.Println("Error reading from buffer")
-			panic(err)
-		}
+		str, _ := rw.ReadString('\n')
+		// if err != nil {
+		// 	fmt.Println("Error reading from buffer")
+		// 	panic(err)
+		// }
 
 		if str == "" {
 			return
@@ -103,9 +107,19 @@ func Run() {
 
 	// libp2p.New constructs a new libp2p Host. Other options can be added
 	// here.
+	var r io.Reader
+	r = rand.Reader
+	// Creates a new RSA key pair for this host.
+	prvKey, _, err := crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, r)
+	if err != nil {
+		panic(err)
+	}
 
-	host, err := libp2p.New(ctx,
+	host, err := libp2p.New(
+		ctx,
 		libp2p.ListenAddrs([]multiaddr.Multiaddr(config.ListenAddresses)...),
+		libp2p.Identity(prvKey),
+		libp2p.Security(secio.ID, secio.New),
 	)
 	if err != nil {
 		panic(err)
