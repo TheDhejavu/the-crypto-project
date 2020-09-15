@@ -28,7 +28,7 @@ func New() *Config {
 	return &Config{
 		WalletAddressChecksum: getEnvAsInt("WALLET_ADDRESS_CHECKSUM", 1),
 		MinerAddress:          getEnvAsStr("MINER_ADDRESS", ""),
-		ListenPort:            getEnvAsStr("LISTEN_ADDR", ""),
+		ListenPort:            getEnvAsStr("LISTEN_PORT", ""),
 		Miner:                 getEnvAsBool("MINER", false),
 	}
 }

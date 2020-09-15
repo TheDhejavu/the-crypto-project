@@ -62,6 +62,8 @@ func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transac
 	for inId, in := range txCopy.Inputs {
 		prevTX := prevTXs[hex.EncodeToString(in.ID)]
 		txCopy.Inputs[inId].Signature = nil
+		//look for the transaction output that produced this input, then sign it with
+		// the rest of the data
 		txCopy.Inputs[inId].PubKey = prevTX.Outputs[in.Out].PubKeyHash
 		dataToSign := fmt.Sprintf("%x\n", txCopy)
 
@@ -91,6 +93,7 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 	return txCopy
 }
 
+// Create new Transaction
 func NewTransaction(w *wallet.Wallet, to string, amount float64, utxo *UXTOSet) *Transaction {
 	var inputs []TxInput
 	var outputs []TxOutput
@@ -99,7 +102,7 @@ func NewTransaction(w *wallet.Wallet, to string, amount float64, utxo *UXTOSet) 
 
 	acc, validoutputs := utxo.FindSpendableOutputs(publicKeyHash, amount)
 	if acc < amount {
-		log.Panic("You dont have Enough Amount...")
+		log.Fatalln("You dont have Enough Amount...")
 	}
 
 	from := fmt.Sprintf("%s", w.Address())
@@ -122,6 +125,7 @@ func NewTransaction(w *wallet.Wallet, to string, amount float64, utxo *UXTOSet) 
 	tx := Transaction{nil, inputs, outputs}
 	tx.ID = tx.Hash()
 
+	// Sign the new transaction with wallet Private Key
 	utxo.Blockchain.SignTransaction(w.PrivateKey, &tx)
 
 	return &tx
@@ -134,7 +138,7 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 
 	for _, in := range tx.Inputs {
 		if prevTXs[hex.EncodeToString(in.ID)].ID == nil {
-			log.Panic("ERROR: Previous Transaction is not correct")
+			log.Panic("ERROR: Previous Transaction is not valid")
 		}
 	}
 
@@ -169,6 +173,7 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 	return true
 }
 
+// Helper function for displaying transaction data in the console
 func (tx *Transaction) String() string {
 	var lines []string
 
@@ -190,6 +195,9 @@ func (tx *Transaction) String() string {
 
 	return strings.Join(lines, "\n")
 }
+
+// Miner Transaction with Input && Output credited with 20.000 token for the workdone
+// No Signature is required for the miner transaction Input
 func MinerTx(to, data string) *Transaction {
 	if data == "" {
 		randData := make([]byte, 24)

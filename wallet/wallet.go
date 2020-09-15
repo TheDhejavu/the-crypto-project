@@ -72,6 +72,7 @@ func MakeWallet() *Wallet {
 }
 
 func PublicKeyHash(pubKey []byte) []byte {
+	//generate a hash using sha256 
 	pubHash := sha256.Sum256(pubKey)
 
 	hasher := ripemd160.New()
@@ -80,6 +81,7 @@ func PublicKeyHash(pubKey []byte) []byte {
 		log.Panic(err)
 	}
 
+	// Re-hash the genrated sha256 using ripemd160
 	publicRipMd := hasher.Sum(nil)
 	return publicRipMd
 }

@@ -390,7 +390,7 @@ func MineTx(chain *blockchain.Blockchain) {
 	}
 
 	if len(txs) == 0 {
-		fmt.Println("All transactions are valid")
+		fmt.Println("No valid Transaction")
 	}
 
 	cbTx := blockchain.MinerTx(minerAddress, "")

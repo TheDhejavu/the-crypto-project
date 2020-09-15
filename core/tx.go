@@ -4,7 +4,14 @@ import (
 	"bytes"
 	"encoding/gob"
 
+	"github.com/workspace/the-crypto-project/util/env"
 	"github.com/workspace/the-crypto-project/wallet"
+)
+
+var conf = env.New()
+var (
+	checkSumlength = conf.WalletAddressChecksum
+	version        = byte(0x00) // hexadecimal representation of zero
 )
 
 // Input represents debit
@@ -35,7 +42,7 @@ func NewTXOutput(value float64, address string) *TxOutput {
 
 func (out *TxOutput) Lock(address []byte) {
 	pubKeyHash := wallet.Base58Decode(address)
-	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
+	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-checkSumlength]
 
 	out.PubKeyHash = pubKeyHash
 }

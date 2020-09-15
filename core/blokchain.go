@@ -206,7 +206,7 @@ func (chain *Blockchain) GetBestHeight() int {
 
 }
 
-//Mine Block Creates a new block and adds it to the blockchain
+//Mine Block Creates a new block and add it to the blockchain
 func (chain *Blockchain) MineBlock(transactions []*Transaction) *Block {
 	var lastHash []byte
 	var lastHeight int
@@ -303,6 +303,7 @@ func (chain *Blockchain) FindUTXO() map[string]TxOutputs {
 	return UTXOs
 }
 
+//Find a specific transaction by ID
 func (chain *Blockchain) FindTransaction(ID []byte) (Transaction, error) {
 	iter := chain.Iterator()
 
@@ -322,31 +323,30 @@ func (chain *Blockchain) FindTransaction(ID []byte) (Transaction, error) {
 	return Transaction{}, errors.New("No transaction with id")
 }
 
-func (chain *Blockchain) SignTransaction(privKey ecdsa.PrivateKey, tx *Transaction) {
-	prevTXs := make(map[string]Transaction)
-
-	for _, in := range tx.Inputs {
-		prevTX, err := chain.FindTransaction(in.ID)
+func (chain *Blockchain) GetTransaction(transaction *Transaction) map[string]Transaction {
+	txs := make(map[string]Transaction)
+	for _, in := range transaction.Inputs {
+		// get all transaction with in.ID
+		tx, err := chain.FindTransaction(in.ID)
 		Handle(err)
-		prevTXs[hex.EncodeToString(prevTX.ID)] = prevTX
+		txs[hex.EncodeToString(tx.ID)] = tx
 	}
 
-	tx.Sign(privKey, prevTXs)
+	return txs
 }
 
-func (bc *Blockchain) VerifyTransaction(tx *Transaction) bool {
+func (chain *Blockchain) SignTransaction(privKey ecdsa.PrivateKey, tx *Transaction) {
+	prevTxs := chain.GetTransaction(tx)
+	tx.Sign(privKey, prevTxs)
+}
+
+func (chain *Blockchain) VerifyTransaction(tx *Transaction) bool {
 	if tx.IsMinerTx() {
 		return true
 	}
-	prevTXs := make(map[string]Transaction)
+	prevTxs := chain.GetTransaction(tx)
 
-	for _, in := range tx.Inputs {
-		prevTX, err := bc.FindTransaction(in.ID)
-		Handle(err)
-		prevTXs[hex.EncodeToString(prevTX.ID)] = prevTX
-	}
-
-	return tx.Verify(prevTXs)
+	return tx.Verify(prevTxs)
 }
 
 func retry(dir string, originalOpts badger.Options) (*badger.DB, error) {

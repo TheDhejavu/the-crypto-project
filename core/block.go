@@ -2,6 +2,7 @@ package blockchain
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/gob"
 	"fmt"
 	"time"
@@ -80,6 +81,7 @@ func DeSerialize(data []byte) *Block {
 // Check if the block is valid by confirming variety of information
 // in the block
 func IsBlockValid(newBlock, oldBlock Block) bool {
+	var hash [32]byte
 	if oldBlock.Height+1 != newBlock.Height {
 		return false
 	}
@@ -87,7 +89,14 @@ func IsBlockValid(newBlock, oldBlock Block) bool {
 	if res != 0 {
 		return false
 	}
+	pow := NewProof(&newBlock)
+	info := pow.InitData(newBlock.Nonce)
+	hash = sha256.Sum256(info)
 
+	hashData := bytes.Compare(newBlock.Hash, hash[:])
+	if hashData != 0 {
+		return false
+	}
 	return true
 }
 
