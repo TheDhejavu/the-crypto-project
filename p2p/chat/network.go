@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/crypto"
@@ -43,9 +45,14 @@ func readData(rw *bufio.ReadWriter) {
 		str, _ := rw.ReadString('\n')
 		// if err != nil {
 		// 	fmt.Println("Error reading from buffer")
-		// 	panic(err)
+		// 	err = rw.Flush()
+		// 	if err != nil {
+		// 		fmt.Println("Error flushing buffer")
+		// 		panic(err)
+		// 	}
+		// 	continue
 		// }
-
+		fmt.Println(str)
 		if str == "" {
 			return
 		}
@@ -54,7 +61,6 @@ func readData(rw *bufio.ReadWriter) {
 			// Reset console colour: 	\x1b[0m
 			fmt.Printf("\x1b[32m%s\x1b[0m> ", str)
 		}
-
 	}
 }
 
@@ -64,11 +70,24 @@ func writeData(rw *bufio.ReadWriter) {
 	for {
 		fmt.Print("> ")
 		sendData, err := stdReader.ReadString('\n')
+		ch := make(chan os.Signal, 1)
+		signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
+		go func() {
+			<-ch
+			sendData = "Peer has disconnected"
+			fmt.Println("Disconnecting.......")
+			_, err = rw.WriteString(fmt.Sprintf("%s\n", sendData))
+			if err != nil {
+				fmt.Println("Error writing to buffer")
+				panic(err)
+			}
+			os.Exit(1)
+		}()
+
 		if err != nil {
 			fmt.Println("Error reading from stdin")
 			panic(err)
 		}
-
 		_, err = rw.WriteString(fmt.Sprintf("%s\n", sendData))
 		if err != nil {
 			fmt.Println("Error writing to buffer")
@@ -77,7 +96,7 @@ func writeData(rw *bufio.ReadWriter) {
 		err = rw.Flush()
 		if err != nil {
 			fmt.Println("Error flushing buffer")
-			panic(err)
+			// panic(err)
 		}
 	}
 }
@@ -196,7 +215,7 @@ func Run() {
 			continue
 		} else {
 			rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
-
+			
 			go writeData(rw)
 			go readData(rw)
 		}
