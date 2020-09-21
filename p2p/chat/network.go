@@ -11,6 +11,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/crypto"
@@ -19,17 +20,44 @@ import (
 	"github.com/libp2p/go-libp2p-core/protocol"
 	discovery "github.com/libp2p/go-libp2p-discovery"
 	secio "github.com/libp2p/go-libp2p-secio"
+	"github.com/mattn/go-colorable"
+	"github.com/snowzach/rotatefilehook"
 
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	multiaddr "github.com/multiformats/go-multiaddr"
-
-	"github.com/ipfs/go-log"
+	log "github.com/sirupsen/logrus"
 )
 
-var logger = log.Logger("rendezvous")
+func init() {
+	var logLevel = log.InfoLevel
+
+	rotateFileHook, err := rotatefilehook.NewRotateFileHook(rotatefilehook.RotateFileConfig{
+		Filename:   "../logs/console.log",
+		MaxSize:    50, // megabytes
+		MaxBackups: 3,
+		MaxAge:     28, //days
+		Level:      logLevel,
+		Formatter: &log.JSONFormatter{
+			TimestampFormat: time.RFC822,
+		},
+	})
+
+	if err != nil {
+		log.Fatalf("Failed to initialize file rotate hook: %v", err)
+	}
+
+	log.SetLevel(logLevel)
+	log.SetOutput(colorable.NewColorableStdout())
+	log.SetFormatter(&log.TextFormatter{
+		ForceColors:     true,
+		FullTimestamp:   true,
+		TimestampFormat: time.RFC822,
+	})
+	log.AddHook(rotateFileHook)
+}
 
 func handleStream(stream network.Stream) {
-	logger.Info("Got a new stream!")
+	log.Info("Got a new stream!")
 
 	// Create a buffer stream for non blocking read and write.
 	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
@@ -40,19 +68,20 @@ func handleStream(stream network.Stream) {
 	// 'stream' will stay open until you close it (or the other side closes it).
 }
 
+// func handle(host *host.Host, p *peer)
+
 func readData(rw *bufio.ReadWriter) {
 	for {
-		str, _ := rw.ReadString('\n')
-		// if err != nil {
-		// 	fmt.Println("Error reading from buffer")
-		// 	err = rw.Flush()
-		// 	if err != nil {
-		// 		fmt.Println("Error flushing buffer")
-		// 		panic(err)
-		// 	}
-		// 	continue
-		// }
-		fmt.Println(str)
+		str, err := rw.ReadString('\n')
+		if err != nil {
+			fmt.Println("Error reading from buffer")
+			err = rw.Flush()
+			if err != nil {
+				fmt.Println("Error flushing buffer")
+				panic(err)
+			}
+			continue
+		}
 		if str == "" {
 			return
 		}
@@ -81,7 +110,7 @@ func writeData(rw *bufio.ReadWriter) {
 				fmt.Println("Error writing to buffer")
 				panic(err)
 			}
-			os.Exit(1)
+			// os.Exit(1)
 		}()
 
 		if err != nil {
@@ -102,12 +131,6 @@ func writeData(rw *bufio.ReadWriter) {
 }
 
 func Run() {
-	lvl, err := log.LevelFromString("warn")
-	if err != nil {
-		panic(err)
-	}
-	log.SetAllLoggers(lvl)
-	log.SetLogLevel("rendezvous", "info")
 	help := flag.Bool("h", false, "Display Help")
 	config, err := ParseFlags()
 	if err != nil {
@@ -143,8 +166,8 @@ func Run() {
 	if err != nil {
 		panic(err)
 	}
-	logger.Info("Host created. We are:", host.ID())
-	logger.Info(host.Addrs())
+	log.Info("Host created. We are:", host.ID())
+	log.Info(host.Addrs())
 
 	// Set a function as stream handler. This function is called when a peer
 	// initiates a connection and starts a stream with this peer.
@@ -162,7 +185,7 @@ func Run() {
 
 	// Bootstrap the DHT. In the default configuration, this spawns a Background
 	// thread that will refresh the peer table every five minutes.
-	logger.Debug("Bootstrapping the DHT")
+	log.Debug("Bootstrapping the DHT")
 	if err = kademliaDHT.Bootstrap(ctx); err != nil {
 		panic(err)
 	}
@@ -176,9 +199,9 @@ func Run() {
 		go func() {
 			defer wg.Done()
 			if err := host.Connect(ctx, *peerinfo); err != nil {
-				logger.Warning(err)
+				log.Warning(err)
 			} else {
-				logger.Info("Connection established with bootstrap node:", *peerinfo)
+				log.Info("Connection established with bootstrap node:", *peerinfo)
 			}
 		}()
 	}
@@ -186,14 +209,14 @@ func Run() {
 
 	// We use a rendezvous point "meet me here" to announce our location.
 	// This is like telling your friends to meet you at the Eiffel Tower.
-	logger.Info("Announcing ourselves...")
+	log.Info("Announcing ourselves...")
 	routingDiscovery := discovery.NewRoutingDiscovery(kademliaDHT)
 	discovery.Advertise(ctx, routingDiscovery, config.RendezvousString)
-	logger.Debug("Successfully announced!")
+	log.Debug("Successfully announced!")
 
 	// Now, look for others who have announced
 	// This is like your friend telling you the location to meet you.
-	logger.Debug("Searching for other peers...")
+	log.Debug("Searching for other peers...")
 	peerChan, err := routingDiscovery.FindPeers(ctx, config.RendezvousString)
 	if err != nil {
 		panic(err)
@@ -205,22 +228,22 @@ func Run() {
 		if peer.ID == host.ID() {
 			continue
 		}
-		logger.Debug("Found peer:", peer)
+		log.Debug("Found peer:", peer)
 
-		logger.Debug("Connecting to:", peer)
+		log.Debug("Connecting to:", peer)
 		stream, err := host.NewStream(ctx, peer.ID, protocol.ID(config.ProtocolID))
 
 		if err != nil {
-			logger.Warning("Connection failed:", err)
+			log.Warning("Connection failed:", err)
 			continue
 		} else {
 			rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
-			
+
 			go writeData(rw)
 			go readData(rw)
 		}
 
-		logger.Info("Connected to:", peer)
+		log.Info("Connected to:", peer)
 	}
 
 	select {}

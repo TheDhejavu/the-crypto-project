@@ -205,3 +205,4 @@ The minerAddress, miner and ListenPort Flags are optional if this flags already 
 - [What is the difference between decentralized and distributed systems?](https://medium.com/distributed-economy/what-is-the-difference-between-decentralized-and-distributed-systems-f4190a5c6462#:~:text=A%20decentralized%20system%20is%20a%20subset%20of%20a%20distributed%20system.&text=Decentralized%20means%20that%20there%20is,where%20the%20decision%20is%20made.&text=Distributed%20means%20that%20the%20processing,and%20use%20complete%20system%20knowledge.)
 - [Ethereum Geth](https://geth.ethereum.org/docs/)
 - [Original Bitcoin Client](https://en.bitcoin.it/wiki/Original_Bitcoin_client/API_calls_list)
+- [Libp2p Overview](https://simpleaswater.com/libp2p-glossary/)
