@@ -2,19 +2,51 @@ package main
 
 import (
 	"os"
+	"time"
 
+	"github.com/mattn/go-colorable"
+	log "github.com/sirupsen/logrus"
+	"github.com/snowzach/rotatefilehook"
 	"github.com/spf13/cobra"
 	"github.com/workspace/the-crypto-project/cmd/utils"
 	jsonrpc "github.com/workspace/the-crypto-project/json-rpc"
 	"github.com/workspace/the-crypto-project/util/env"
 )
 
+func init() {
+	var logLevel = log.InfoLevel
+
+	rotateFileHook, err := rotatefilehook.NewRotateFileHook(rotatefilehook.RotateFileConfig{
+		Filename:   "../../logs/console.log",
+		MaxSize:    50, // megabytes
+		MaxBackups: 3,
+		MaxAge:     28, //days
+		Level:      logLevel,
+		Formatter: &log.JSONFormatter{
+			TimestampFormat: time.RFC822,
+		},
+	})
+
+	if err != nil {
+		log.Fatalf("Failed to initialize file rotate hook: %v", err)
+	}
+
+	log.SetLevel(logLevel)
+	log.SetOutput(colorable.NewColorableStdout())
+	log.SetFormatter(&log.TextFormatter{
+		ForceColors:     true,
+		FullTimestamp:   true,
+		TimestampFormat: time.RFC822,
+	})
+	log.AddHook(rotateFileHook)
+}
+
 func main() {
 	var conf = env.New()
 	defer os.Exit(0)
 	cli := utils.CommandLine{}
 	var address string
-	var ListenPort string
+
 	/*
 	* INIT COMMAND
 	 */
@@ -88,23 +120,22 @@ func main() {
 	 */
 	var minerAddress string
 	var miner bool
+	var ListenPort string
 	var nodeCmd = &cobra.Command{
 		Use:   "startnode",
 		Short: "start a node",
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-			if ListenPort == "" {
-				ListenPort = conf.ListenPort
-			}
-			if minerAddress == "" {
-				minerAddress = conf.MinerAddress
+
+			if miner && len(minerAddress) == 0 {
+				log.Fatalln("Miner address is required --minerAddress")
 			}
 
-			cli.StartNode(ListenPort, address, miner)
+			cli.StartNode(ListenPort, minerAddress, miner)
 		},
 	}
-	nodeCmd.Flags().StringVar(&ListenPort, "port", "", "Node ID")
-	nodeCmd.Flags().StringVar(&minerAddress, "minerAddress", "", "Set miner address")
+	nodeCmd.Flags().StringVar(&ListenPort, "port", conf.ListenPort, "Node ID")
+	nodeCmd.Flags().StringVar(&minerAddress, "minerAddress", conf.MinerAddress, "Set miner address")
 	nodeCmd.Flags().BoolVar(&miner, "miner", conf.Miner, "Set as true if you are joining the network as a miner")
 
 	/*

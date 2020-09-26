@@ -110,7 +110,7 @@ func writeData(rw *bufio.ReadWriter) {
 				fmt.Println("Error writing to buffer")
 				panic(err)
 			}
-			// os.Exit(1)
+			os.Exit(1)
 		}()
 
 		if err != nil {

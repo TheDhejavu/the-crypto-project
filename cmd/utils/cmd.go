@@ -6,8 +6,10 @@ import (
 	"strconv"
 	"time"
 
+	logger "github.com/sirupsen/logrus"
 	blockchain "github.com/workspace/the-crypto-project/core"
 	"github.com/workspace/the-crypto-project/network"
+	"github.com/workspace/the-crypto-project/p2p"
 	"github.com/workspace/the-crypto-project/wallet"
 )
 
@@ -28,21 +30,21 @@ type SendResponse struct {
 	Timestamp int64
 }
 
-func (cli *CommandLine) StartNode(ListenPort, minerAddress string, miner bool) {
+func (cli *CommandLine) StartNode(listenPort, minerAddress string, miner bool) {
 	if miner {
-		fmt.Printf("Starting Node %s as a MINER\n", ListenPort)
+		logger.Infof("Starting Node %s as a MINER\n", listenPort)
 	} else {
-		fmt.Printf("Starting Node %s\n", ListenPort)
+		logger.Infof("Starting Node %s\n", listenPort)
 	}
 	if len(minerAddress) > 0 {
 		if wallet.ValidateAddress(minerAddress) {
-			fmt.Println("Mining is on. Address to receive rewards:", minerAddress)
+			logger.Info("Mining is ON. Address to receive rewards:", minerAddress)
 		} else {
-			log.Panic("Wrong Miner Address!")
+			log.Fatal("Please provide a valid miner address")
 		}
 	}
 
-	network.StartServer(ListenPort, minerAddress)
+	p2p.StartNode(listenPort, minerAddress, miner)
 }
 
 func (cli *CommandLine) Send(from string, to string, amount float64, mineNow bool) SendResponse {
