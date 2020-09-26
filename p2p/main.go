@@ -1,8 +1,10 @@
 package p2p
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
+	"encoding/gob"
 	"fmt"
 	"io"
 	"os"
@@ -31,14 +33,87 @@ import (
 
 type addrList []maddr.Multiaddr
 
-// DiscoveryServiceTag is used in our mDNS advertisements to discover other chat peers.
+type Version struct {
+	Version    int
+	BestHeight int
+	NodeID     peer.ID
+}
+
+const (
+	version       = 1
+	commandLength = 12
+)
+
 var (
-	GeneralRoom     = "general-room"
-	MiningRoom      = "mining-room"
+	GeneralChannel  = "general-channel"
+	MiningChannel   = "mining-channel"
 	MinerAddress    = ""
 	blocksInTransit = [][]byte{}
 	memoryPool      = make(map[string]blockchain.Transaction)
 )
+
+func CmdToBytes(cmd string) []byte {
+	var bytes [commandLength]byte
+	for i, c := range cmd {
+		bytes[i] = byte(c)
+	}
+	return bytes[:]
+}
+
+func BytesToCmd(bytes []byte) string {
+	var cmd []byte
+	for _, b := range bytes {
+		if b != byte(0) {
+			cmd = append(cmd, b)
+		}
+	}
+	return fmt.Sprintf("%s", cmd)
+}
+
+func GobEncode(data interface{}) []byte {
+	var buff bytes.Buffer
+
+	enc := gob.NewEncoder(&buff)
+	err := enc.Encode(data)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return buff.Bytes()
+}
+
+func SendVersion(peer peer.ID, channel *Channel, host host.Host, chain *blockchain.Blockchain) {
+	bestHeight := chain.GetBestHeight()
+	payload := GobEncode(Version{
+		version,
+		bestHeight,
+		host.ID(),
+	})
+	request := append(CmdToBytes("version"), payload...)
+	channel.Publish("hello world", request, ShortID(peer))
+}
+
+func HandleVersion(content *ChannelContent, chain *blockchain.Blockchain) {
+	var buff bytes.Buffer
+	var payload Version
+
+	buff.Write(content.Payload[commandLength:])
+	dec := gob.NewDecoder(&buff)
+	err := dec.Decode(&payload)
+
+	if err != nil {
+		log.Panic(err)
+	}
+
+	bestHeight := chain.GetBestHeight()
+	otherHeight := payload.BestHeight
+	fmt.Println(bestHeight, otherHeight)
+	if bestHeight < otherHeight {
+		// SendGetBlocks(payload.AddrFrom)
+	} else if bestHeight > otherHeight {
+		// SendVersion(payload.AddrFrom, chain)
+	}
+}
 
 func CloseDB(chain *blockchain.Blockchain) {
 	d := death.NewDeath(syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
@@ -109,26 +184,37 @@ func StartNode(listenPort, minerAddress string, miner bool) {
 		panic(err)
 	}
 
-	// setup peer discovery
-	err = setupDiscovery(ctx, host, *chain)
-	if err != nil {
-		panic(err)
-	}
-
-	nodeRoom, _ := JoinNodeRoom(ctx, pub, host.ID(), GeneralRoom, true)
+	GeneralChannel, _ := JoinChannel(ctx, pub, host.ID(), GeneralChannel, true)
 	subscribe := false
 	if miner {
 		subscribe = true
 	}
-	miningRoom, _ := JoinNodeRoom(ctx, pub, host.ID(), MiningRoom, subscribe)
-	ui := NewCLIUI(nodeRoom, miningRoom)
+	MiningChannel, _ := JoinChannel(ctx, pub, host.ID(), MiningChannel, subscribe)
+	ui := NewCLIUI(GeneralChannel, MiningChannel)
 
-	if err = ui.Run(); err != nil {
+	// setup peer discovery
+	err = SetupDiscovery(ctx, host)
+	if err != nil {
+		panic(err)
+	}
+	err = RequestBlocks(GeneralChannel, host, chain)
+	if err != nil {
+		panic(err)
+	}
+	if err = ui.Run(chain); err != nil {
 		printErr("error running text UI: %s", err)
 	}
 }
 
-func setupDiscovery(ctx context.Context, host host.Host, chain blockchain.Blockchain) error {
+func RequestBlocks(generalChannel *Channel, host host.Host, chain *blockchain.Blockchain) error {
+	peers := generalChannel.ListPeers()
+	// Send version
+	if len(peers) > 0 {
+		SendVersion(peers[0], generalChannel, host, chain)
+	}
+	return nil
+}
+func SetupDiscovery(ctx context.Context, host host.Host) error {
 
 	// Start a DHT, for use in peer discovery. We can't just make a new DHT
 	// client because we want each peer to maintain its own local copy of the
@@ -180,7 +266,6 @@ func setupDiscovery(ctx context.Context, host host.Host, chain blockchain.Blockc
 	}
 
 	// Finally we open streams to the newly discovered peers.
-	var peers []peer.ID
 
 	for peer := range peerChan {
 		if peer.ID == host.ID() {
@@ -194,10 +279,8 @@ func setupDiscovery(ctx context.Context, host host.Host, chain blockchain.Blockc
 			log.Warningf("Error connecting to peer %s: %s\n", peer.ID.Pretty(), err)
 			continue
 		}
-		peers = append(peers, peer.ID)
 		log.Info("Connected to:", peer)
 	}
-	fmt.Println(peers)
 
 	return nil
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/rivo/tview"
+	blockchain "github.com/workspace/the-crypto-project/core"
 )
 
 // CLIUI is a Text User Interface (TUI) for the node.
@@ -16,10 +17,10 @@ import (
 // mode. You can quit with Ctrl-C, or by typing "/quit" into the
 // chat prompt.
 type CLIUI struct {
-	Node       *NodeRoom
-	MiningNode *NodeRoom
-	app        *tview.Application
-	peersList  *tview.TextView
+	GeneralChannel *Channel
+	MiningChannel  *Channel
+	app            *tview.Application
+	peersList      *tview.TextView
 
 	msgW    io.Writer
 	inputCh chan string
@@ -28,14 +29,14 @@ type CLIUI struct {
 
 // NewCLIUI returns a new CLIUI struct that controls the text UI.
 // It won't actually do anything until you call Run().
-func NewCLIUI(node *NodeRoom, miningNode *NodeRoom) *CLIUI {
+func NewCLIUI(generalChannel *Channel, miningChannel *Channel) *CLIUI {
 	app := tview.NewApplication()
 
 	// make a text view to contain our chat messages
 	msgBox := tview.NewTextView()
 	msgBox.SetDynamicColors(true)
 	msgBox.SetBorder(true)
-	msgBox.SetTitle(fmt.Sprintf("Node: %s", shortID(node.self)))
+	msgBox.SetTitle(fmt.Sprintf("Blockchain CLI UI"))
 
 	// text views are io.Writers, but they don't automatically refresh.
 	// this sets a change handler to force the app to redraw when we get
@@ -47,7 +48,7 @@ func NewCLIUI(node *NodeRoom, miningNode *NodeRoom) *CLIUI {
 	// an input field for typing messages into
 	inputCh := make(chan string, 32)
 	input := tview.NewInputField().
-		SetLabel(shortID(node.self) + " > ").
+		SetLabel(ShortID(generalChannel.self) + " > ").
 		SetFieldWidth(0).
 		SetFieldBackgroundColor(tcell.ColorBlack)
 
@@ -95,20 +96,20 @@ func NewCLIUI(node *NodeRoom, miningNode *NodeRoom) *CLIUI {
 	app.SetRoot(flex, true)
 
 	return &CLIUI{
-		Node:       node,
-		MiningNode: miningNode,
-		app:        app,
-		peersList:  peersList,
-		msgW:       msgBox,
-		inputCh:    inputCh,
-		doneCh:     make(chan struct{}, 1),
+		GeneralChannel: generalChannel,
+		MiningChannel:  miningChannel,
+		app:            app,
+		peersList:      peersList,
+		msgW:           msgBox,
+		inputCh:        inputCh,
+		doneCh:         make(chan struct{}, 1),
 	}
 }
 
 // Run starts the chat event loop in the background, then starts
 // the event loop for the text UI.
-func (ui *CLIUI) Run() error {
-	go ui.handleEvents()
+func (ui *CLIUI) Run(chain *blockchain.Blockchain) error {
+	go ui.handleEvents(chain)
 	defer ui.end()
 
 	return ui.app.Run()
@@ -122,8 +123,8 @@ func (ui *CLIUI) end() {
 // refreshPeers pulls the list of peers currently in the chat room and
 // displays the last 8 chars of their peer id in the Peers panel in the ui.
 func (ui *CLIUI) refreshPeers() {
-	peers := ui.Node.ListPeers()
-	minerPeers := ui.MiningNode.ListPeers()
+	peers := ui.GeneralChannel.ListPeers()
+	minerPeers := ui.MiningChannel.ListPeers()
 	idStrs := make([]string, len(peers))
 
 	// fmt.Println(peers)
@@ -137,12 +138,12 @@ func (ui *CLIUI) refreshPeers() {
 				}
 			}
 			if isMiner {
-				idStrs[i] = "MINER:" + shortID(p)
+				idStrs[i] = "MINER:" + ShortID(p)
 			} else {
-				idStrs[i] = shortID(p)
+				idStrs[i] = ShortID(p)
 			}
 		} else {
-			idStrs[i] = shortID(p)
+			idStrs[i] = ShortID(p)
 		}
 	}
 
@@ -153,19 +154,33 @@ func (ui *CLIUI) refreshPeers() {
 // displaySelfMessage writes a message from ourself to the message window,
 // with our nick highlighted in yellow.
 func (ui *CLIUI) displaySelfMessage(msg string) {
-	prompt := withColor("yellow", fmt.Sprintf("<%s>:", shortID(ui.Node.self)))
+	prompt := withColor("yellow", fmt.Sprintf("<%s>:", ShortID(ui.GeneralChannel.self)))
 	fmt.Fprintf(ui.msgW, "%s %s\n", prompt, msg)
 }
 
-func (ui *CLIUI) displayData(NodeContent *NodeContent) {
-	prompt := withColor("green", fmt.Sprintf("<%s>:", NodeContent.NodeID))
-	fmt.Fprintf(ui.msgW, "%s %s\n", prompt, NodeContent.Message)
+func (ui *CLIUI) displayContent(content *ChannelContent) {
+	prompt := withColor("green", fmt.Sprintf("<%s>:", content.NodeID))
+	fmt.Fprintf(ui.msgW, "%s %s\n", prompt, content.Message)
+}
+
+func (ui *CLIUI) HandleIncoming(content *ChannelContent, chain *blockchain.Blockchain) {
+	command := BytesToCmd(content.Payload[:commandLength])
+	fmt.Printf("Received  %s command \n", command)
+
+	ui.displayContent(content)
+
+	switch command {
+	case "version":
+		HandleVersion(content, chain)
+	default:
+		fmt.Println("Unknown Command")
+	}
 }
 
 // handleEvents runs an event loop that sends user input to the chat room
 // and displays messages received from the chat room. It also periodically
 // refreshes the list of peers in the UI.
-func (ui *CLIUI) handleEvents() {
+func (ui *CLIUI) handleEvents(chain *blockchain.Blockchain) {
 	peerRefreshTicker := time.NewTicker(time.Second)
 	defer peerRefreshTicker.Stop()
 
@@ -174,12 +189,12 @@ func (ui *CLIUI) handleEvents() {
 		case input := <-ui.inputCh:
 
 			if input == "miner" {
-				err := ui.MiningNode.Publish(input, "")
+				err := ui.MiningChannel.Publish(input, nil, "")
 				if err != nil {
 					fmt.Sprintln("publish error: %s", err)
 				}
 			} else {
-				err := ui.Node.Publish(input, "")
+				err := ui.GeneralChannel.Publish(input, nil, "")
 				if err != nil {
 					fmt.Sprintln("publish error: %s", err)
 				}
@@ -189,15 +204,15 @@ func (ui *CLIUI) handleEvents() {
 		case <-peerRefreshTicker.C:
 			// refresh the list of peers in the chat room periodically
 			ui.refreshPeers()
-		case m := <-ui.Node.Data:
+		case m := <-ui.GeneralChannel.Content:
 			// when we receive a message from the chat room, print it to the message window
-			ui.displayData(m)
+			ui.HandleIncoming(m, chain)
 
-		case m := <-ui.MiningNode.Data:
+		case m := <-ui.MiningChannel.Content:
 			// when we receive a message from the chat room, print it to the message window
-			ui.displayData(m)
+			ui.HandleIncoming(m, chain)
 
-		case <-ui.Node.ctx.Done():
+		case <-ui.GeneralChannel.ctx.Done():
 			return
 
 		case <-ui.doneCh:
@@ -211,8 +226,8 @@ func withColor(color, msg string) string {
 	return fmt.Sprintf("[%s]%s[-]", color, msg)
 }
 
-// shortID returns the last 8 chars of a base58-encoded peer id.
-func shortID(p peer.ID) string {
+// ShortID returns the last 8 chars of a base58-encoded peer id.
+func ShortID(p peer.ID) string {
 	pretty := p.Pretty()
 	return pretty[len(pretty)-8:]
 }
