@@ -9,7 +9,6 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/rivo/tview"
-	blockchain "github.com/workspace/the-crypto-project/core"
 )
 
 // CLIUI is a Text User Interface (TUI) for the node.
@@ -108,8 +107,8 @@ func NewCLIUI(generalChannel *Channel, miningChannel *Channel) *CLIUI {
 
 // Run starts the chat event loop in the background, then starts
 // the event loop for the text UI.
-func (ui *CLIUI) Run(chain *blockchain.Blockchain) error {
-	go ui.handleEvents(chain)
+func (ui *CLIUI) Run(net *Network) error {
+	go ui.handleEvents(net)
 	defer ui.end()
 
 	return ui.app.Run()
@@ -151,36 +150,42 @@ func (ui *CLIUI) refreshPeers() {
 	ui.app.Draw()
 }
 
-// displaySelfMessage writes a message from ourself to the message window,
-// with our nick highlighted in yellow.
 func (ui *CLIUI) displaySelfMessage(msg string) {
 	prompt := withColor("yellow", fmt.Sprintf("<%s>:", ShortID(ui.GeneralChannel.self)))
 	fmt.Fprintf(ui.msgW, "%s %s\n", prompt, msg)
 }
 
 func (ui *CLIUI) displayContent(content *ChannelContent) {
-	prompt := withColor("green", fmt.Sprintf("<%s>:", content.NodeID))
+	prompt := withColor("green", fmt.Sprintf("<%s>:", content.SenderNodeID))
 	fmt.Fprintf(ui.msgW, "%s %s\n", prompt, content.Message)
 }
 
-func (ui *CLIUI) HandleIncoming(content *ChannelContent, chain *blockchain.Blockchain) {
+func (ui *CLIUI) HandleStream(net *Network, content *ChannelContent) {
 	command := BytesToCmd(content.Payload[:commandLength])
 	fmt.Printf("Received  %s command \n", command)
 
 	ui.displayContent(content)
 
 	switch command {
+	case "block":
+		net.HandleBlocks(content)
+	case "inv":
+		net.HandleInv(content)
+	case "getblocks":
+		net.HandleGetBlocks(content)
+	case "getdata":
+		net.HandleGetData(content)
 	case "version":
-		HandleVersion(content, chain)
+		net.HandleVersion(content)
 	default:
 		fmt.Println("Unknown Command")
 	}
 }
 
-// handleEvents runs an event loop that sends user input to the chat room
-// and displays messages received from the chat room. It also periodically
+// handleEvents runs an event loop that sends user input to the channel
+// and displays messages received from the channel. It also periodically
 // refreshes the list of peers in the UI.
-func (ui *CLIUI) handleEvents(chain *blockchain.Blockchain) {
+func (ui *CLIUI) handleEvents(net *Network) {
 	peerRefreshTicker := time.NewTicker(time.Second)
 	defer peerRefreshTicker.Stop()
 
@@ -205,12 +210,10 @@ func (ui *CLIUI) handleEvents(chain *blockchain.Blockchain) {
 			// refresh the list of peers in the chat room periodically
 			ui.refreshPeers()
 		case m := <-ui.GeneralChannel.Content:
-			// when we receive a message from the chat room, print it to the message window
-			ui.HandleIncoming(m, chain)
+			ui.HandleStream(net, m)
 
 		case m := <-ui.MiningChannel.Content:
-			// when we receive a message from the chat room, print it to the message window
-			ui.HandleIncoming(m, chain)
+			ui.HandleStream(net, m)
 
 		case <-ui.GeneralChannel.ctx.Done():
 			return

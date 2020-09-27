@@ -13,6 +13,8 @@ import (
 	"github.com/workspace/the-crypto-project/wallet"
 )
 
+var p2pNetwork *p2p.Network
+
 type CommandLine struct {
 	Blockchain *blockchain.Blockchain
 }
@@ -44,7 +46,7 @@ func (cli *CommandLine) StartNode(listenPort, minerAddress string, miner bool) {
 		}
 	}
 
-	p2p.StartNode(listenPort, minerAddress, miner)
+	p2pNetwork = p2p.StartNode(listenPort, minerAddress, miner)
 }
 
 func (cli *CommandLine) Send(from string, to string, amount float64, mineNow bool) SendResponse {

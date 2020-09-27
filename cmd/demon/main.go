@@ -49,7 +49,7 @@ func main() {
 
 	/*
 	* INIT COMMAND
-	 */
+	*/
 	var initCmd = &cobra.Command{
 		Use:   "init",
 		Short: "Initialize the blockchain and create the genesis block",
