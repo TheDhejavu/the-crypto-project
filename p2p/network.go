@@ -22,12 +22,14 @@ import (
 	yamux "github.com/libp2p/go-libp2p-yamux"
 	tcp "github.com/libp2p/go-tcp-transport"
 	ws "github.com/libp2p/go-ws-transport"
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/vrecan/death.v3"
 
 	"github.com/libp2p/go-libp2p-core/host"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	blockchain "github.com/workspace/the-crypto-project/core"
+	"github.com/workspace/the-crypto-project/memopool"
 )
 
 type Network struct {
@@ -38,30 +40,31 @@ type Network struct {
 }
 
 type Version struct {
-	Version      int
-	BestHeight   int
-	SenderNodeID peer.ID
+	Version    int
+	BestHeight int
+	SendFrom   string
 }
 
 type GetBlocks struct {
-	SenderNodeID peer.ID
+	SendFrom string
+	Height   int
 }
 
 type Block struct {
-	SenderNodeID peer.ID
-	Block        []byte
+	SendFrom string
+	Block    []byte
 }
 
 type GetData struct {
-	SenderNodeID peer.ID
-	Type         string
-	ID           []byte
+	SendFrom string
+	Type     string
+	ID       []byte
 }
 
 type Inv struct {
-	SenderNodeID peer.ID
-	Type         string
-	Items        [][]byte
+	SendFrom string
+	Type     string
+	Items    [][]byte
 }
 
 const (
@@ -74,7 +77,7 @@ var (
 	MiningChannel   = "mining-channel"
 	MinerAddress    = ""
 	blocksInTransit = [][]byte{}
-	memoryPool      = make(map[string]blockchain.Transaction)
+	memoryPool      = new(memopool.MemoPool)
 )
 
 func CmdToBytes(cmd string) []byte {
@@ -116,14 +119,14 @@ func CloseDB(chain *blockchain.Blockchain) {
 	})
 }
 
-func (net *Network) SendBlock(peerId peer.ID, b *blockchain.Block) {
-	data := Block{net.Host.ID(), b.Serialize()}
+func (net *Network) SendBlock(peerId string, b *blockchain.Block) {
+	data := Block{net.Host.ID().Pretty(), b.Serialize()}
 	payload := GobEncode(data)
 	request := append(CmdToBytes("block"), payload...)
 	if peerId != "" {
-		net.GeneralChannel.Publish("hello world", request, peerId)
+		net.GeneralChannel.Publish("Recieved block", request, peerId)
 	} else {
-		net.GeneralChannel.Publish("hello world", request, "")
+		net.GeneralChannel.Publish("Recieved block", request, "")
 	}
 }
 
@@ -142,23 +145,38 @@ func (net *Network) HandleBlocks(content *ChannelContent) {
 	blockData := payload.Block
 	block := blockchain.DeSerialize(blockData)
 	fmt.Printf("Node just recieved a new block")
-	///Verify block before adding it to the blockchain
-	net.Blockchain.AddBlock(block)
+	// Verify block before adding it to the blockchain
+	if block.IsGenesis() {
+		net.Blockchain.AddBlock(block)
+	} else {
+		lastBlock, err := net.Blockchain.GetBlock(net.Blockchain.LastHash)
+		if err != nil {
+			logrus.Info(err)
+		}
+		logrus.Info(block.Height)
+		if block.IsBlockValid(lastBlock) {
+			net.Blockchain.AddBlock(block)
+		} else {
+			CloseDB(net.Blockchain)
+			log.Fatalf("We discovered an invalid block of height: %d", block.Height)
+		}
+	}
+
 	fmt.Printf("Added block %x \n", block.Hash)
 	if len(blocksInTransit) > 0 {
 		blockHash := blocksInTransit[0]
 
-		net.SendGetData(payload.SenderNodeID, "block", blockHash)
+		net.SendGetData(payload.SendFrom, "block", blockHash)
 		blocksInTransit = blocksInTransit[1:]
 	} else {
 		UTXO := blockchain.UXTOSet{net.Blockchain}
 		UTXO.Compute()
 	}
 }
-func (net *Network) SendGetData(peerId peer.ID, _type string, id []byte) {
-	payload := GobEncode(GetData{net.Host.ID(), _type, id})
+func (net *Network) SendGetData(peerId string, _type string, id []byte) {
+	payload := GobEncode(GetData{net.Host.ID().Pretty(), _type, id})
 	request := append(CmdToBytes("getdata"), payload...)
-	net.GeneralChannel.Publish("hello world", request, peerId)
+	net.GeneralChannel.Publish("Recieved getdata", request, peerId)
 }
 
 func (net *Network) HandleGetData(content *ChannelContent) {
@@ -179,15 +197,15 @@ func (net *Network) HandleGetData(content *ChannelContent) {
 			return
 		}
 
-		net.SendBlock(payload.SenderNodeID, &block)
+		net.SendBlock(payload.SendFrom, &block)
 	}
 }
 
-func (net *Network) SendInv(peerId peer.ID, _type string, items [][]byte) {
-	inventory := Inv{net.Host.ID(), _type, items}
+func (net *Network) SendInv(peerId string, _type string, items [][]byte) {
+	inventory := Inv{net.Host.ID().Pretty(), _type, items}
 	payload := GobEncode(inventory)
 	request := append(CmdToBytes("inv"), payload...)
-	net.GeneralChannel.Publish("hello world", request, peerId)
+	net.GeneralChannel.Publish("Recieved inventory", request, peerId)
 }
 
 func (net *Network) HandleInv(content *ChannelContent) {
@@ -207,7 +225,7 @@ func (net *Network) HandleInv(content *ChannelContent) {
 		blocksInTransit = payload.Items
 
 		blockHash := payload.Items[0]
-		net.SendGetData(payload.SenderNodeID, "block", blockHash)
+		net.SendGetData(payload.SendFrom, "block", blockHash)
 
 		newInTransit := [][]byte{}
 		for _, b := range blocksInTransit {
@@ -219,10 +237,10 @@ func (net *Network) HandleInv(content *ChannelContent) {
 	}
 }
 
-func (net *Network) SendGetBlocks(peerId peer.ID) {
-	payload := GobEncode(GetBlocks{net.Host.ID()})
+func (net *Network) SendGetBlocks(peerId string, height int) {
+	payload := GobEncode(GetBlocks{net.Host.ID().Pretty(), height})
 	request := append(CmdToBytes("getblocks"), payload...)
-	net.GeneralChannel.Publish("hello world", request, peerId)
+	net.GeneralChannel.Publish(" Recieved getblocks", request, peerId)
 }
 
 func (net *Network) HandleGetBlocks(content *ChannelContent) {
@@ -237,19 +255,20 @@ func (net *Network) HandleGetBlocks(content *ChannelContent) {
 		log.Panic(err)
 	}
 
-	blockHashes := net.Blockchain.GetBlockHashes()
-	net.SendInv(payload.SenderNodeID, "block", blockHashes)
+	blockHashes := net.Blockchain.GetBlockHashes(payload.Height)
+	fmt.Println("LENGTH:", len(blockHashes))
+	net.SendInv(payload.SendFrom, "block", blockHashes)
 }
 
-func (net *Network) SendVersion(peer peer.ID) {
+func (net *Network) SendVersion(peer string) {
 	bestHeight := net.Blockchain.GetBestHeight()
 	payload := GobEncode(Version{
 		version,
 		bestHeight,
-		net.Host.ID(),
+		net.Host.ID().Pretty(),
 	})
 	request := append(CmdToBytes("version"), payload...)
-	net.GeneralChannel.Publish("hello world", request, peer)
+	net.GeneralChannel.Publish("Recieved send version", request, peer)
 }
 
 func (net *Network) HandleVersion(content *ChannelContent) {
@@ -268,9 +287,9 @@ func (net *Network) HandleVersion(content *ChannelContent) {
 	otherHeight := payload.BestHeight
 	fmt.Println(bestHeight, otherHeight)
 	if bestHeight < otherHeight {
-		net.SendGetBlocks(payload.SenderNodeID)
+		net.SendGetBlocks(payload.SendFrom, bestHeight)
 	} else if bestHeight > otherHeight {
-		net.SendVersion(payload.SenderNodeID)
+		net.SendVersion(payload.SendFrom)
 	}
 }
 
@@ -368,7 +387,7 @@ func RequestBlocks(net *Network) error {
 	peers := net.GeneralChannel.ListPeers()
 	// Send version
 	if len(peers) > 0 {
-		net.SendVersion(peers[0])
+		net.SendVersion(peers[0].Pretty())
 	}
 	return nil
 }
@@ -424,7 +443,6 @@ func SetupDiscovery(ctx context.Context, host host.Host) error {
 	}
 
 	// Finally we open streams to the newly discovered peers.
-
 	for peer := range peerChan {
 		if peer.ID == host.ID() {
 			continue

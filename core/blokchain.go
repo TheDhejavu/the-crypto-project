@@ -59,13 +59,16 @@ func ContinueBlockchain() *Blockchain {
 	//Read-Write Operations
 	err = db.Update(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte("lh"))
-
-		Handle(err)
-		lastHash, err = item.ValueCopy(nil)
+		if err == nil {
+			lastHash, err = item.ValueCopy(nil)
+		}
 
 		return err
 	})
 
+	if err != nil {
+		lastHash = nil
+	}
 	return &Blockchain{lastHash, db}
 }
 
@@ -119,22 +122,26 @@ func (chain *Blockchain) AddBlock(block *Block) *Block {
 
 		// get the last block
 		item, err := txn.Get([]byte("lh"))
-		Handle(err)
-		lastHash, _ := item.ValueCopy(nil)
-		item, err = txn.Get(lastHash)
-		Handle(err)
-		lastBlockData, _ := item.ValueCopy(nil)
-		lastBlock := DeSerialize(lastBlockData)
-
-		//check if the current block height is
-		// greater than the lastBlock Height
-		if block.Height > lastBlock.Height {
-			err := txn.Set([]byte("lh"), block.Hash)
+		if err == nil {
+			lastHash, _ := item.ValueCopy(nil)
+			item, err = txn.Get(lastHash)
 			Handle(err)
+			lastBlockData, _ := item.ValueCopy(nil)
+			lastBlock := DeSerialize(lastBlockData)
+
+			// check if the current block height is
+			// greater than the lastBlock Height
+			if block.Height > lastBlock.Height {
+				err := txn.Set([]byte("lh"), block.Hash)
+				Handle(err)
+				chain.LastHash = block.Hash
+			}
+		} else {
+			err = txn.Set([]byte("lh"), block.Hash)
 			chain.LastHash = block.Hash
 		}
 
-		return nil
+		return err
 	})
 
 	Handle(err)
@@ -164,15 +171,20 @@ func (chain *Blockchain) GetBlock(blockHash []byte) (Block, error) {
 }
 
 //Aggregate and get all block hashes in the blockchain
-func (chain *Blockchain) GetBlockHashes() [][]byte {
+func (chain *Blockchain) GetBlockHashes(height int) [][]byte {
 	var blocks [][]byte
 
 	iter := chain.Iterator()
+	if iter == nil {
+		return blocks
+	}
 	for {
 		block := iter.Next()
 		prevHash := block.PrevHash
-
-		blocks = append(blocks, block.Hash)
+		if block.Height == height {
+			break
+		}
+		blocks = append([][]byte{block.Hash}, blocks...)
 
 		if prevHash == nil {
 			break
@@ -189,21 +201,23 @@ func (chain *Blockchain) GetBestHeight() int {
 
 	err := chain.Database.View(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte("lh"))
-		Handle(err)
-		lastHash, _ := item.ValueCopy(nil)
+		if err == nil {
+			lastHash, _ := item.ValueCopy(nil)
 
-		item, err = txn.Get(lastHash)
-		Handle(err)
-		lastBlockData, _ := item.ValueCopy(nil)
-		lastBlock = *DeSerialize(lastBlockData)
+			item, err = txn.Get(lastHash)
+			Handle(err)
+			lastBlockData, _ := item.ValueCopy(nil)
+			lastBlock = *DeSerialize(lastBlockData)
+		}
 
-		return nil
+		return err
 	})
 
-	Handle(err)
+	if err == nil {
+		return lastBlock.Height
+	}
 
-	return lastBlock.Height
-
+	return 0
 }
 
 //Mine Block Creates a new block and add it to the blockchain

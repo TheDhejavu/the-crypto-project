@@ -2,7 +2,6 @@ package blockchain
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/gob"
 	"fmt"
 	"time"
@@ -55,7 +54,7 @@ func CreateBlock(txs []*Transaction, prevHash []byte, height int) *Block {
 
 // Genesis block
 func Genesis(MinerTx *Transaction) *Block {
-	return CreateBlock([]*Transaction{MinerTx}, []byte{}, 0)
+	return CreateBlock([]*Transaction{MinerTx}, []byte{}, 1)
 }
 
 // Util function for serializing blockchain data
@@ -77,27 +76,24 @@ func DeSerialize(data []byte) *Block {
 	Handle(err)
 	return &block
 }
+func (b *Block) IsGenesis() bool {
+	return b.PrevHash == nil
+}
 
 // Check if the block is valid by confirming variety of information
 // in the block
-func IsBlockValid(newBlock, oldBlock Block) bool {
-	var hash [32]byte
-	if oldBlock.Height+1 != newBlock.Height {
+func (b *Block) IsBlockValid(oldBlock Block) bool {
+	if oldBlock.Height+1 != b.Height {
 		return false
 	}
-	res := bytes.Compare(oldBlock.Hash, newBlock.PrevHash)
+	res := bytes.Compare(oldBlock.Hash, b.PrevHash)
 	if res != 0 {
 		return false
 	}
-	pow := NewProof(&newBlock)
-	info := pow.InitData(newBlock.Nonce)
-	hash = sha256.Sum256(info)
+	pow := NewProof(b)
+	validate := pow.Validate()
 
-	hashData := bytes.Compare(newBlock.Hash, hash[:])
-	if hashData != 0 {
-		return false
-	}
-	return true
+	return validate
 }
 
 func ConstructJSON(buffer *bytes.Buffer, block *Block) {

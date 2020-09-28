@@ -42,6 +42,7 @@ type Block struct {
 
 type GetBlocks struct {
 	AddrFrom string
+	Height   int
 }
 
 type GetData struct {
@@ -151,8 +152,8 @@ func SendGetData(address, kind string, id []byte) {
 	SendData(address, request)
 }
 
-func SendGetBlocks(address string) {
-	payload := GobEncode(GetBlocks{nodeAddress})
+func SendGetBlocks(address string, height int) {
+	payload := GobEncode(GetBlocks{nodeAddress, height})
 	request := append(CmdToBytes("getblocks"), payload...)
 	SendData(address, request)
 }
@@ -198,7 +199,7 @@ func HandleAdrr(request []byte) {
 
 func RequestBlocks() {
 	for _, node := range KnownNodes {
-		SendGetBlocks(node)
+		SendGetBlocks(node, 0)
 	}
 }
 
@@ -242,7 +243,7 @@ func HandleGetBlocks(request []byte, chain *blockchain.Blockchain) {
 		log.Panic(err)
 	}
 
-	blocks := chain.GetBlockHashes()
+	blocks := chain.GetBlockHashes(payload.Height)
 	SendInv(payload.AddrFrom, "block", blocks)
 }
 
@@ -292,7 +293,7 @@ func HandleVersion(request []byte, chain *blockchain.Blockchain) {
 	otherHeight := payload.BestHeight
 	fmt.Println(bestHeight, otherHeight)
 	if bestHeight < otherHeight {
-		SendGetBlocks(payload.AddrFrom)
+		SendGetBlocks(payload.AddrFrom, bestHeight)
 	} else if bestHeight > otherHeight {
 		SendVersion(payload.AddrFrom, chain)
 	}

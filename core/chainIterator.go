@@ -8,6 +8,9 @@ type BlockchainIterator struct {
 }
 
 func (chain *Blockchain) Iterator() *BlockchainIterator {
+	if chain.LastHash == nil {
+		return nil
+	}
 	return &BlockchainIterator{chain.LastHash, chain.Database}
 }
 

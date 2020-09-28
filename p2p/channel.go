@@ -27,10 +27,10 @@ type Channel struct {
 }
 
 type ChannelContent struct {
-	Message        string
-	SenderNodeID   string
-	SenderToNodeID peer.ID
-	Payload        []byte
+	Message  string
+	SendFrom string
+	SendTo   string
+	Payload  []byte
 }
 
 // JoinChannel tries to subsChannelibe to the PubSub topic for the network, returning
@@ -73,12 +73,12 @@ func (ch *Channel) ListPeers() []peer.ID {
 }
 
 // Publish sends a message to the pubsub topic.
-func (channel *Channel) Publish(message string, payload []byte, SenderToNodeID peer.ID) error {
+func (channel *Channel) Publish(message string, payload []byte, SendTo string) error {
 	m := ChannelContent{
-		Message:        message,
-		SenderNodeID:   ShortID(channel.self),
-		SenderToNodeID: SenderToNodeID,
-		Payload:        payload,
+		Message:  message,
+		SendFrom: ShortID(channel.self),
+		SendTo:   SendTo,
+		Payload:  payload,
 	}
 	msgBytes, err := json.Marshal(m)
 	if err != nil {
@@ -108,9 +108,10 @@ func (channel *Channel) readLoop() {
 			continue
 		}
 
-		if NewContent.SenderToNodeID.Pretty() != "" && NewContent.SenderToNodeID.Pretty() != channel.self.Pretty() {
+		if NewContent.SendTo != "" && NewContent.SendTo != channel.self.Pretty() {
 			continue
 		}
+
 		// send valid messages onto the Messages channel
 		channel.Content <- NewContent
 	}

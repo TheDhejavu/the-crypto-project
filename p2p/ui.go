@@ -156,29 +156,30 @@ func (ui *CLIUI) displaySelfMessage(msg string) {
 }
 
 func (ui *CLIUI) displayContent(content *ChannelContent) {
-	prompt := withColor("green", fmt.Sprintf("<%s>:", content.SenderNodeID))
+	prompt := withColor("green", fmt.Sprintf("<%s>:", content.SendFrom))
 	fmt.Fprintf(ui.msgW, "%s %s\n", prompt, content.Message)
 }
 
 func (ui *CLIUI) HandleStream(net *Network, content *ChannelContent) {
-	command := BytesToCmd(content.Payload[:commandLength])
-	fmt.Printf("Received  %s command \n", command)
-
 	ui.displayContent(content)
+	if content.Payload != nil {
+		command := BytesToCmd(content.Payload[:commandLength])
+		fmt.Printf("Received  %s command \n", command)
 
-	switch command {
-	case "block":
-		net.HandleBlocks(content)
-	case "inv":
-		net.HandleInv(content)
-	case "getblocks":
-		net.HandleGetBlocks(content)
-	case "getdata":
-		net.HandleGetData(content)
-	case "version":
-		net.HandleVersion(content)
-	default:
-		fmt.Println("Unknown Command")
+		switch command {
+		case "block":
+			net.HandleBlocks(content)
+		case "inv":
+			net.HandleInv(content)
+		case "getblocks":
+			net.HandleGetBlocks(content)
+		case "getdata":
+			net.HandleGetData(content)
+		case "version":
+			net.HandleVersion(content)
+		default:
+			fmt.Println("Unknown Command")
+		}
 	}
 }
 
@@ -193,16 +194,9 @@ func (ui *CLIUI) handleEvents(net *Network) {
 		select {
 		case input := <-ui.inputCh:
 
-			if input == "miner" {
-				err := ui.MiningChannel.Publish(input, nil, "")
-				if err != nil {
-					fmt.Sprintln("publish error: %s", err)
-				}
-			} else {
-				err := ui.GeneralChannel.Publish(input, nil, "")
-				if err != nil {
-					fmt.Sprintln("publish error: %s", err)
-				}
+			err := ui.GeneralChannel.Publish(input, nil, "")
+			if err != nil {
+				fmt.Sprintln("publish error: %s", err)
 			}
 			ui.displaySelfMessage(input)
 
