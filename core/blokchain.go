@@ -167,6 +167,7 @@ func (chain *Blockchain) GetBlock(blockHash []byte) (Block, error) {
 	if err != nil {
 		return block, err
 	}
+
 	return block, nil
 }
 

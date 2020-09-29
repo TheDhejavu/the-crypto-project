@@ -90,10 +90,10 @@ func (b *Block) IsBlockValid(oldBlock Block) bool {
 	if res != 0 {
 		return false
 	}
-	pow := NewProof(b)
-	validate := pow.Validate()
+	// pow := NewProof(b)
+	// validate := pow.Validate()
 
-	return validate
+	return true
 }
 
 func ConstructJSON(buffer *bytes.Buffer, block *Block) {

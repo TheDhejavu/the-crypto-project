@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"runtime"
+	"strconv"
 	"sync"
 	"syscall"
 
@@ -18,7 +19,6 @@ import (
 	discovery "github.com/libp2p/go-libp2p-discovery"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	mplex "github.com/libp2p/go-libp2p-mplex"
-	secio "github.com/libp2p/go-libp2p-secio"
 	yamux "github.com/libp2p/go-libp2p-yamux"
 	tcp "github.com/libp2p/go-tcp-transport"
 	ws "github.com/libp2p/go-ws-transport"
@@ -144,7 +144,8 @@ func (net *Network) HandleBlocks(content *ChannelContent) {
 
 	blockData := payload.Block
 	block := blockchain.DeSerialize(blockData)
-	fmt.Printf("Node just recieved a new block")
+
+	// fmt.Printf("Valid: %s\n", strconv.FormatBool(validate))
 	// Verify block before adding it to the blockchain
 	if block.IsGenesis() {
 		net.Blockchain.AddBlock(block)
@@ -154,7 +155,9 @@ func (net *Network) HandleBlocks(content *ChannelContent) {
 			logrus.Info(err)
 		}
 		logrus.Info(block.Height)
-		if block.IsBlockValid(lastBlock) {
+		valid := block.IsBlockValid(lastBlock)
+		logrus.Infof("Block validity: %s", strconv.FormatBool(valid))
+		if valid {
 			net.Blockchain.AddBlock(block)
 		} else {
 			CloseDB(net.Blockchain)
@@ -162,7 +165,8 @@ func (net *Network) HandleBlocks(content *ChannelContent) {
 		}
 	}
 
-	fmt.Printf("Added block %x \n", block.Hash)
+	logrus.Printf("Added block %x \n", block.Hash)
+	logrus.Info("Block in transit %d", len(blocksInTransit))
 	if len(blocksInTransit) > 0 {
 		blockHash := blocksInTransit[0]
 
@@ -321,7 +325,7 @@ func StartNode(listenPort, minerAddress string, miner bool) *Network {
 		libp2p.Muxer("/mplex/6.7.0", mplex.DefaultTransport),
 	)
 
-	security := libp2p.Security(secio.ID, secio.New)
+	// security := libp2p.Security(secio.ID, secio.New)
 	if len(listenPort) == 0 {
 		listenPort = "0"
 	}
@@ -336,7 +340,6 @@ func StartNode(listenPort, minerAddress string, miner bool) *Network {
 		transports,
 		listenAddrs,
 		muxers,
-		security,
 		libp2p.Identity(prvKey),
 	)
 	if err != nil {
