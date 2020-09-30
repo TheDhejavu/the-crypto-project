@@ -8,21 +8,24 @@ import (
 
 	logger "github.com/sirupsen/logrus"
 	blockchain "github.com/workspace/the-crypto-project/core"
-	"github.com/workspace/the-crypto-project/network"
 	"github.com/workspace/the-crypto-project/p2p"
 	"github.com/workspace/the-crypto-project/wallet"
 )
 
-var p2pNetwork *p2p.Network
-
 type CommandLine struct {
 	Blockchain *blockchain.Blockchain
+	P2p        *p2p.Network
 }
 
+type Error struct {
+	Code    int
+	Message string
+}
 type BalanceResponse struct {
 	Balance   float64
 	Address   string
 	Timestamp int64
+	Error     *Error
 }
 
 type SendResponse struct {
@@ -30,9 +33,10 @@ type SendResponse struct {
 	SendFrom  string
 	Amount    float64
 	Timestamp int64
+	Error     *Error
 }
 
-func (cli *CommandLine) StartNode(listenPort, minerAddress string, miner bool) {
+func (cli *CommandLine) StartNode(listenPort, minerAddress string, miner bool, fn func(*p2p.Network)) {
 	if miner {
 		logger.Infof("Starting Node %s as a MINER\n", listenPort)
 	} else {
@@ -46,40 +50,67 @@ func (cli *CommandLine) StartNode(listenPort, minerAddress string, miner bool) {
 		}
 	}
 
-	p2pNetwork = p2p.StartNode(listenPort, minerAddress, miner)
+	p2p.StartNode(cli.Blockchain, listenPort, minerAddress, miner, fn)
 }
 
 func (cli *CommandLine) Send(from string, to string, amount float64, mineNow bool) SendResponse {
 
 	if !wallet.ValidateAddress(from) {
-		log.Panic("sendTo address is Invalid ")
+		fmt.Println("sendFrom address is Invalid ")
+		return SendResponse{
+			Error: &Error{
+				Code:    5028,
+				Message: "sendTo address is Invalid",
+			},
+		}
 	}
 	if !wallet.ValidateAddress(to) {
-		log.Panic("sendFrom address is Invalid ")
+		fmt.Println("sendFrom address is Invalid ")
+		return SendResponse{
+			Error: &Error{
+				Code:    5028,
+				Message: "sendFrom address is Invalid",
+			},
+		}
 	}
 
-	chain := blockchain.ContinueBlockchain()
+	chain := cli.Blockchain.ContinueBlockchain()
 
-	defer chain.Database.Close()
 	utxos := blockchain.UXTOSet{chain}
 	cwd := false
 	wallets, err := wallet.InitializeWallets(cwd)
 	if err != nil {
+		chain.Database.Close()
 		log.Panic(err)
 	}
 
 	wallet := wallets.GetWallet(from)
 
-	tx := blockchain.NewTransaction(&wallet, to, amount, &utxos)
-
+	tx, err := blockchain.NewTransaction(&wallet, to, amount, &utxos)
+	if err != nil {
+		fmt.Println(err)
+		return SendResponse{
+			Error: &Error{
+				Code:    5028,
+				Message: "failed to execute transaction",
+			},
+		}
+	}
 	if mineNow {
 
 		cbTx := blockchain.MinerTx(from, "")
 		txs := []*blockchain.Transaction{cbTx, tx}
 		block := chain.MineBlock(txs)
 		utxos.Update(block)
+
+		if cli.P2p != nil {
+			cli.P2p.Blocks <- block
+		}
 	} else {
-		network.SendTx(network.KnownNodes[0], tx)
+		// network.SendTx(network.KnownNodes[0], tx)
+		if cli.P2p != nil {
+			cli.P2p.Transactions <- tx
+		}
 		fmt.Println("")
 	}
 	fmt.Println("Success!")
@@ -105,7 +136,8 @@ func (cli *CommandLine) CreateBlockchain(address string) {
 }
 
 func (cli *CommandLine) ComputeUTXOs() {
-	chain := blockchain.ContinueBlockchain()
+	chain := cli.Blockchain.ContinueBlockchain()
+
 	defer chain.Database.Close()
 
 	utxos := blockchain.UXTOSet{chain}
@@ -117,8 +149,8 @@ func (cli *CommandLine) GetBalance(address string) BalanceResponse {
 	if !wallet.ValidateAddress(address) {
 		log.Panic("Invalid address")
 	}
-	chain := blockchain.ContinueBlockchain()
-	defer chain.Database.Close()
+	chain := cli.Blockchain.ContinueBlockchain()
+	// defer chain.Database.Close()
 	balance := float64(0)
 	publicKeyHash := wallet.Base58Decode([]byte(address))
 	publicKeyHash = publicKeyHash[1 : len(publicKeyHash)-4]
@@ -135,6 +167,7 @@ func (cli *CommandLine) GetBalance(address string) BalanceResponse {
 		balance,
 		address,
 		time.Now().Unix(),
+		&Error{},
 	}
 }
 
@@ -161,7 +194,7 @@ func (cli *CommandLine) ListAddresses() {
 	}
 }
 func (cli *CommandLine) PrintBlockchain() {
-	chain := blockchain.ContinueBlockchain()
+	chain := cli.Blockchain.ContinueBlockchain()
 
 	defer chain.Database.Close()
 	iter := chain.Iterator()
@@ -187,9 +220,9 @@ func (cli *CommandLine) PrintBlockchain() {
 
 func (cli *CommandLine) GetBlockchain() []*blockchain.Block {
 	var blocks []*blockchain.Block
-	chain := blockchain.ContinueBlockchain()
+	chain := cli.Blockchain.ContinueBlockchain()
 
-	defer chain.Database.Close()
+	// defer chain.Database.Close()
 	iter := chain.Iterator()
 
 	for {
@@ -206,9 +239,9 @@ func (cli *CommandLine) GetBlockchain() []*blockchain.Block {
 
 func (cli *CommandLine) GetBlockByHeight(height int) blockchain.Block {
 	var block blockchain.Block
-	chain := blockchain.ContinueBlockchain()
+	chain := cli.Blockchain.ContinueBlockchain()
 
-	defer chain.Database.Close()
+	// defer chain.Database.Close()
 	iter := chain.Iterator()
 
 	for {

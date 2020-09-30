@@ -54,14 +54,15 @@ func (api *API) Send(args SendArgs, data *utils.SendResponse) error {
 	return nil
 }
 
-func StartServer(rpcEnabled bool, rpcPort string, rpcAddr string) {
+func StartServer(cli *utils.CommandLine, rpcEnabled bool, rpcPort string, rpcAddr string) {
 	var port = "5000"
 	if rpcPort != "" {
 		port = rpcPort
 	}
+
 	publicAPI := &API{
 		rpcEnabled,
-		&utils.CommandLine{},
+		cli,
 	}
 	err := rpc.Register(publicAPI)
 	checkError("Error registering API", err)

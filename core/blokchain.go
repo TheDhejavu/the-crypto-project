@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	badger "github.com/dgraph-io/badger"
+	"github.com/sirupsen/logrus"
 )
 
 // Blockchain struct such that lastHash represents the lastblock hash
@@ -41,23 +42,35 @@ func DBExists(path string) bool {
 	return true
 }
 
-func ContinueBlockchain() *Blockchain {
-
+func Exists() bool {
+	return DBExists(dbPath)
+}
+func OpenBardgerDB() *badger.DB {
 	path := dbPath
 
 	if DBExists(path) == false {
 		fmt.Println("No Existing Blockchian DB found, create one!")
 		runtime.Goexit()
 	}
-	var lastHash []byte
 
 	opts := badger.DefaultOptions(path)
-	db, err := badger.Open(opts)
-
+	db, err := OpenDB(path, opts)
 	Handle(err)
 
+	return db
+}
+
+func (chain *Blockchain) ContinueBlockchain() *Blockchain {
+	var lastHash []byte
+	var db *badger.DB
+	if chain.Database == nil {
+		db = OpenBardgerDB()
+	} else {
+		db = chain.Database
+	}
+
 	//Read-Write Operations
-	err = db.Update(func(txn *badger.Txn) error {
+	err := db.Update(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte("lh"))
 		if err == nil {
 			lastHash, err = item.ValueCopy(nil)
@@ -69,6 +82,7 @@ func ContinueBlockchain() *Blockchain {
 	if err != nil {
 		lastHash = nil
 	}
+	logrus.Infof("LastHash: %x", lastHash)
 	return &Blockchain{lastHash, db}
 }
 
@@ -174,7 +188,7 @@ func (chain *Blockchain) GetBlock(blockHash []byte) (Block, error) {
 //Aggregate and get all block hashes in the blockchain
 func (chain *Blockchain) GetBlockHashes(height int) [][]byte {
 	var blocks [][]byte
-
+	
 	iter := chain.Iterator()
 	if iter == nil {
 		return blocks
@@ -366,6 +380,7 @@ func (chain *Blockchain) VerifyTransaction(tx *Transaction) bool {
 
 func retry(dir string, originalOpts badger.Options) (*badger.DB, error) {
 	lockPath := filepath.Join(dir, "LOCK")
+
 	if err := os.Remove(lockPath); err != nil {
 		return nil, fmt.Errorf(`removing "LOCK": %s`, err)
 	}
@@ -377,8 +392,11 @@ func retry(dir string, originalOpts badger.Options) (*badger.DB, error) {
 }
 
 func OpenDB(dir string, opts badger.Options) (*badger.DB, error) {
+
 	if db, err := badger.Open(opts); err != nil {
+
 		if strings.Contains(err.Error(), "LOCK") {
+
 			if db, err := retry(dir, opts); err == nil {
 				log.Panicln("database unlocked , value log truncated ")
 				return db, nil

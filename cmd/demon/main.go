@@ -9,8 +9,11 @@ import (
 	"github.com/snowzach/rotatefilehook"
 	"github.com/spf13/cobra"
 	"github.com/workspace/the-crypto-project/cmd/utils"
+	blockchain "github.com/workspace/the-crypto-project/core"
 	jsonrpc "github.com/workspace/the-crypto-project/json-rpc"
+	"github.com/workspace/the-crypto-project/p2p"
 	"github.com/workspace/the-crypto-project/util/env"
+	dbutils "github.com/workspace/the-crypto-project/util/utils"
 )
 
 func init() {
@@ -42,14 +45,30 @@ func init() {
 }
 
 func main() {
-	var conf = env.New()
 	defer os.Exit(0)
-	cli := utils.CommandLine{}
+	var conf = env.New()
 	var address string
+
+	var rpcPort string
+	var rpcAddr string
+	var rpc bool
+	var chain *blockchain.Blockchain
+
+	cli := utils.CommandLine{
+		Blockchain: &blockchain.Blockchain{Database: nil},
+		P2p:        nil,
+	}
+
+	if blockchain.Exists() {
+		chain = new(blockchain.Blockchain)
+		cli.Blockchain = chain.ContinueBlockchain()
+		defer chain.Database.Close()
+		go dbutils.CloseDB(chain)
+	}
 
 	/*
 	* INIT COMMAND
-	*/
+	 */
 	var initCmd = &cobra.Command{
 		Use:   "init",
 		Short: "Initialize the blockchain and create the genesis block",
@@ -131,7 +150,12 @@ func main() {
 				log.Fatalln("Miner address is required --minerAddress")
 			}
 
-			cli.StartNode(ListenPort, minerAddress, miner)
+			cli.StartNode(ListenPort, minerAddress, miner, func(net *p2p.Network) {
+				if rpc {
+					cli.P2p = net
+					go jsonrpc.StartServer(&cli, rpc, rpcPort, rpcAddr)
+				}
+			})
 		},
 	}
 	nodeCmd.Flags().StringVar(&ListenPort, "port", conf.ListenPort, "Node ID")
@@ -159,14 +183,11 @@ func main() {
 	sendCmd.Flags().Float64Var(&amount, "amount", float64(0), "Amount of token to send")
 	sendCmd.Flags().BoolVar(&mine, "mine", false, "Set if you want your Node to mine the transaction instantly")
 
-	var rpcPort string
-	var rpcAddr string
-	var rpc bool
 	var rootCmd = &cobra.Command{
 		Use: "demon",
 		Run: func(cmd *cobra.Command, args []string) {
 			if rpc {
-				jsonrpc.StartServer(rpc, rpcPort, rpcAddr)
+				jsonrpc.StartServer(&cli, rpc, rpcPort, rpcAddr)
 			}
 		},
 	}

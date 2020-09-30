@@ -8,10 +8,8 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"runtime"
 	"strconv"
 	"sync"
-	"syscall"
 
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/crypto"
@@ -24,12 +22,12 @@ import (
 	ws "github.com/libp2p/go-ws-transport"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/vrecan/death.v3"
 
 	"github.com/libp2p/go-libp2p-core/host"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	blockchain "github.com/workspace/the-crypto-project/core"
 	"github.com/workspace/the-crypto-project/memopool"
+	"github.com/workspace/the-crypto-project/util/utils"
 )
 
 type Network struct {
@@ -37,6 +35,8 @@ type Network struct {
 	GeneralChannel *Channel
 	MiningChannel  *Channel
 	Blockchain     *blockchain.Blockchain
+	Blocks         chan *blockchain.Block
+	Transactions   chan *blockchain.Transaction
 }
 
 type Version struct {
@@ -110,15 +110,6 @@ func GobEncode(data interface{}) []byte {
 	return buff.Bytes()
 }
 
-func CloseDB(chain *blockchain.Blockchain) {
-	d := death.NewDeath(syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
-	d.WaitForDeathWithFunc(func() {
-		defer os.Exit(1)
-		defer runtime.Goexit()
-		chain.Database.Close()
-	})
-}
-
 func (net *Network) SendBlock(peerId string, b *blockchain.Block) {
 	data := Block{net.Host.ID().Pretty(), b.Serialize()}
 	payload := GobEncode(data)
@@ -160,7 +151,7 @@ func (net *Network) HandleBlocks(content *ChannelContent) {
 		if valid {
 			net.Blockchain.AddBlock(block)
 		} else {
-			CloseDB(net.Blockchain)
+			utils.CloseDB(net.Blockchain)
 			log.Fatalf("We discovered an invalid block of height: %d", block.Height)
 		}
 	}
@@ -226,18 +217,22 @@ func (net *Network) HandleInv(content *ChannelContent) {
 	fmt.Printf("Recieved inventory with %d %s \n", len(payload.Items), payload.Type)
 
 	if payload.Type == "block" {
-		blocksInTransit = payload.Items
+		if len(payload.Items) >= 1 {
+			blocksInTransit = payload.Items
 
-		blockHash := payload.Items[0]
-		net.SendGetData(payload.SendFrom, "block", blockHash)
+			blockHash := payload.Items[0]
+			net.SendGetData(payload.SendFrom, "block", blockHash)
 
-		newInTransit := [][]byte{}
-		for _, b := range blocksInTransit {
-			if bytes.Compare(b, blockHash) != 0 {
-				newInTransit = append(newInTransit, b)
+			newInTransit := [][]byte{}
+			for _, b := range blocksInTransit {
+				if bytes.Compare(b, blockHash) != 0 {
+					newInTransit = append(newInTransit, b)
+				}
 			}
+			blocksInTransit = newInTransit
+		} else {
+			logrus.Info("Empty block hashes")
 		}
-		blocksInTransit = newInTransit
 	}
 }
 
@@ -259,7 +254,8 @@ func (net *Network) HandleGetBlocks(content *ChannelContent) {
 		log.Panic(err)
 	}
 
-	blockHashes := net.Blockchain.GetBlockHashes(payload.Height)
+	chain := net.Blockchain.ContinueBlockchain()
+	blockHashes := chain.GetBlockHashes(payload.Height)
 	fmt.Println("LENGTH:", len(blockHashes))
 	net.SendInv(payload.SendFrom, "block", blockHashes)
 }
@@ -297,17 +293,15 @@ func (net *Network) HandleVersion(content *ChannelContent) {
 	}
 }
 
-func StartNode(listenPort, minerAddress string, miner bool) *Network {
+func StartNode(chain *blockchain.Blockchain, listenPort, minerAddress string, miner bool, callback func(*Network)) {
 	var r io.Reader
 	r = rand.Reader
 	MinerAddress = minerAddress
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	chain := blockchain.ContinueBlockchain()
-
 	defer chain.Database.Close()
-	go CloseDB(chain)
+	go utils.CloseDB(chain)
 
 	// Creates a new RSA key pair for this host.
 	prvKey, _, err := crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, r)
@@ -374,18 +368,31 @@ func StartNode(listenPort, minerAddress string, miner bool) *Network {
 		GeneralChannel: GeneralChannel,
 		MiningChannel:  MiningChannel,
 		Blockchain:     chain,
+		Blocks:         make(chan *blockchain.Block, 200),
+		Transactions:   make(chan *blockchain.Transaction, 200),
 	}
+	callback(network)
 	err = RequestBlocks(network)
+	go HandleEvents(network)
+
 	if err != nil {
 		panic(err)
 	}
 	if err = ui.Run(network); err != nil {
 		printErr("error running text UI: %s", err)
 	}
-
-	return network
 }
 
+func HandleEvents(net *Network) {
+	for {
+		select {
+		case block := <-net.Blocks:
+			net.SendBlock("", block)
+		case _ = <-net.Transactions:
+
+		}
+	}
+}
 func RequestBlocks(net *Network) error {
 	peers := net.GeneralChannel.ListPeers()
 	// Send version

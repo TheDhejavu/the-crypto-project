@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"encoding/gob"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log"
 	"math/big"
@@ -94,7 +95,7 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 }
 
 // Create new Transaction
-func NewTransaction(w *wallet.Wallet, to string, amount float64, utxo *UXTOSet) *Transaction {
+func NewTransaction(w *wallet.Wallet, to string, amount float64, utxo *UXTOSet) (*Transaction, error) {
 	var inputs []TxInput
 	var outputs []TxOutput
 
@@ -102,7 +103,8 @@ func NewTransaction(w *wallet.Wallet, to string, amount float64, utxo *UXTOSet) 
 
 	acc, validoutputs := utxo.FindSpendableOutputs(publicKeyHash, amount)
 	if acc < amount {
-		log.Fatalln("You dont have Enough Amount...")
+		err := errors.New("You dont have Enough Amount...")
+		return nil, err
 	}
 
 	from := fmt.Sprintf("%s", w.Address())
@@ -128,7 +130,7 @@ func NewTransaction(w *wallet.Wallet, to string, amount float64, utxo *UXTOSet) 
 	// Sign the new transaction with wallet Private Key
 	utxo.Blockchain.SignTransaction(w.PrivateKey, &tx)
 
-	return &tx
+	return &tx, nil
 }
 
 func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
