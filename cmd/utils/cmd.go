@@ -36,7 +36,7 @@ type SendResponse struct {
 	Error     *Error
 }
 
-func (cli *CommandLine) StartNode(listenPort, minerAddress string, miner bool, fn func(*p2p.Network)) {
+func (cli *CommandLine) StartNode(listenPort, minerAddress string, miner, fullNode bool, fn func(*p2p.Network)) {
 	if miner {
 		logger.Infof("Starting Node %s as a MINER\n", listenPort)
 	} else {
@@ -49,8 +49,8 @@ func (cli *CommandLine) StartNode(listenPort, minerAddress string, miner bool, f
 			log.Fatal("Please provide a valid miner address")
 		}
 	}
-
-	p2p.StartNode(cli.Blockchain, listenPort, minerAddress, miner, fn)
+	chain := cli.Blockchain.ContinueBlockchain()
+	p2p.StartNode(chain, listenPort, minerAddress, miner, fullNode, fn)
 }
 
 func (cli *CommandLine) Send(from string, to string, amount float64, mineNow bool) SendResponse {

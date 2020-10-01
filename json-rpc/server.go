@@ -74,7 +74,6 @@ func StartServer(cli *utils.CommandLine, rpcEnabled bool, rpcPort string, rpcAdd
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	checkError("Error serving:", err)
 
-	// sample test endpoint
 	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
 		io.WriteString(res, "RPC SERVER LIVE!")
 	})

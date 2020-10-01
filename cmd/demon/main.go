@@ -139,6 +139,7 @@ func main() {
 	 */
 	var minerAddress string
 	var miner bool
+	var fullNode bool
 	var ListenPort string
 	var nodeCmd = &cobra.Command{
 		Use:   "startnode",
@@ -150,7 +151,7 @@ func main() {
 				log.Fatalln("Miner address is required --minerAddress")
 			}
 
-			cli.StartNode(ListenPort, minerAddress, miner, func(net *p2p.Network) {
+			cli.StartNode(ListenPort, minerAddress, miner, fullNode, func(net *p2p.Network) {
 				if rpc {
 					cli.P2p = net
 					go jsonrpc.StartServer(&cli, rpc, rpcPort, rpcAddr)
@@ -161,6 +162,7 @@ func main() {
 	nodeCmd.Flags().StringVar(&ListenPort, "port", conf.ListenPort, "Node ID")
 	nodeCmd.Flags().StringVar(&minerAddress, "minerAddress", conf.MinerAddress, "Set miner address")
 	nodeCmd.Flags().BoolVar(&miner, "miner", conf.Miner, "Set as true if you are joining the network as a miner")
+	nodeCmd.Flags().BoolVar(&fullNode, "fullnode", conf.FullNode, "Set as true if you are joining the network as a miner")
 
 	/*
 	* SEND COMMAND

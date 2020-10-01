@@ -22,6 +22,7 @@ type Config struct {
 	MinerAddress          string
 	ListenPort            string
 	Miner                 bool
+	FullNode              bool
 }
 
 func New() *Config {
@@ -30,6 +31,7 @@ func New() *Config {
 		MinerAddress:          getEnvAsStr("MINER_ADDRESS", ""),
 		ListenPort:            getEnvAsStr("LISTEN_PORT", ""),
 		Miner:                 getEnvAsBool("MINER", false),
+		FullNode:              getEnvAsBool("FULL_NODE", false),
 	}
 }
 

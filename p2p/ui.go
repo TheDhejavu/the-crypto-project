@@ -16,10 +16,11 @@ import (
 // mode. You can quit with Ctrl-C, or by typing "/quit" into the
 // chat prompt.
 type CLIUI struct {
-	GeneralChannel *Channel
-	MiningChannel  *Channel
-	app            *tview.Application
-	peersList      *tview.TextView
+	GeneralChannel   *Channel
+	MiningChannel    *Channel
+	FullNodesChannel *Channel
+	app              *tview.Application
+	peersList        *tview.TextView
 
 	msgW    io.Writer
 	inputCh chan string
@@ -28,7 +29,7 @@ type CLIUI struct {
 
 // NewCLIUI returns a new CLIUI struct that controls the text UI.
 // It won't actually do anything until you call Run().
-func NewCLIUI(generalChannel *Channel, miningChannel *Channel) *CLIUI {
+func NewCLIUI(generalChannel *Channel, miningChannel *Channel, fullNodesChannel *Channel) *CLIUI {
 	app := tview.NewApplication()
 
 	// make a text view to contain our chat messages
@@ -95,13 +96,14 @@ func NewCLIUI(generalChannel *Channel, miningChannel *Channel) *CLIUI {
 	app.SetRoot(flex, true)
 
 	return &CLIUI{
-		GeneralChannel: generalChannel,
-		MiningChannel:  miningChannel,
-		app:            app,
-		peersList:      peersList,
-		msgW:           msgBox,
-		inputCh:        inputCh,
-		doneCh:         make(chan struct{}, 1),
+		GeneralChannel:   generalChannel,
+		MiningChannel:    miningChannel,
+		FullNodesChannel: fullNodesChannel,
+		app:              app,
+		peersList:        peersList,
+		msgW:             msgBox,
+		inputCh:          inputCh,
+		doneCh:           make(chan struct{}, 1),
 	}
 }
 
@@ -175,6 +177,8 @@ func (ui *CLIUI) HandleStream(net *Network, content *ChannelContent) {
 			net.HandleGetBlocks(content)
 		case "getdata":
 			net.HandleGetData(content)
+		case "tx":
+			net.HandleTx(content)
 		case "version":
 			net.HandleVersion(content)
 		default:
@@ -207,6 +211,9 @@ func (ui *CLIUI) handleEvents(net *Network) {
 			ui.HandleStream(net, m)
 
 		case m := <-ui.MiningChannel.Content:
+			ui.HandleStream(net, m)
+
+		case m := <-ui.FullNodesChannel.Content:
 			ui.HandleStream(net, m)
 
 		case <-ui.GeneralChannel.ctx.Done():

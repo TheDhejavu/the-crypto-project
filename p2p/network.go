@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/gob"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"os"
@@ -31,12 +32,13 @@ import (
 )
 
 type Network struct {
-	Host           host.Host
-	GeneralChannel *Channel
-	MiningChannel  *Channel
-	Blockchain     *blockchain.Blockchain
-	Blocks         chan *blockchain.Block
-	Transactions   chan *blockchain.Transaction
+	Host             host.Host
+	GeneralChannel   *Channel
+	MiningChannel    *Channel
+	FullNodesChannel *Channel
+	Blockchain       *blockchain.Blockchain
+	Blocks           chan *blockchain.Block
+	Transactions     chan *blockchain.Transaction
 }
 
 type Version struct {
@@ -49,7 +51,10 @@ type GetBlocks struct {
 	SendFrom string
 	Height   int
 }
-
+type Tx struct {
+	SendFrom    string
+	Transaction []byte
+}
 type Block struct {
 	SendFrom string
 	Block    []byte
@@ -73,11 +78,15 @@ const (
 )
 
 var (
-	GeneralChannel  = "general-channel"
-	MiningChannel   = "mining-channel"
-	MinerAddress    = ""
-	blocksInTransit = [][]byte{}
-	memoryPool      = new(memopool.MemoPool)
+	GeneralChannel   = "general-channel"
+	MiningChannel    = "mining-channel"
+	FullNodesChannel = "fullnodes-channel"
+	MinerAddress     = ""
+	blocksInTransit  = [][]byte{}
+	memoryPool       = memopool.MemoPool{
+		map[string]blockchain.Transaction{}, 
+		map[string]blockchain.Transaction{},
+	}
 )
 
 func CmdToBytes(cmd string) []byte {
@@ -147,9 +156,15 @@ func (net *Network) HandleBlocks(content *ChannelContent) {
 		}
 		logrus.Info(block.Height)
 		valid := block.IsBlockValid(lastBlock)
-		logrus.Infof("Block validity: %s", strconv.FormatBool(valid))
+		logrus.Info("Block validity:", strconv.FormatBool(valid))
 		if valid {
 			net.Blockchain.AddBlock(block)
+
+			//Remove transactions from the memory Pool...
+			for _, tx := range block.Transactions {
+				txID := hex.EncodeToString(tx.ID)
+				memoryPool.RemoveFromAll(txID)
+			}
 		} else {
 			utils.CloseDB(net.Blockchain)
 			log.Fatalf("We discovered an invalid block of height: %d", block.Height)
@@ -157,7 +172,8 @@ func (net *Network) HandleBlocks(content *ChannelContent) {
 	}
 
 	logrus.Printf("Added block %x \n", block.Hash)
-	logrus.Info("Block in transit %d", len(blocksInTransit))
+	logrus.Infof("Block in transit %d", len(blocksInTransit))
+
 	if len(blocksInTransit) > 0 {
 		blockHash := blocksInTransit[0]
 
@@ -293,7 +309,64 @@ func (net *Network) HandleVersion(content *ChannelContent) {
 	}
 }
 
-func StartNode(chain *blockchain.Blockchain, listenPort, minerAddress string, miner bool, callback func(*Network)) {
+func (net *Network) SendTx(transaction *blockchain.Transaction) {
+	memoryPool.Add(*transaction)
+
+	tnx := Tx{net.Host.ID().Pretty(), transaction.Serializer()}
+	payload := GobEncode(tnx)
+	request := append(CmdToBytes("tx"), payload...)
+	
+	net.FullNodesChannel.Publish("Recieved send transaction", request, "")
+}
+func (net *Network) HandleTx(content *ChannelContent) {
+	var buff bytes.Buffer
+	var payload Tx
+
+	buff.Write(content.Payload[commandLength:])
+	dec := gob.NewDecoder(&buff)
+	err := dec.Decode(&payload)
+
+	if err != nil {
+		log.Panic(err)
+	}
+
+	txData := payload.Transaction
+	tx := blockchain.DeserializeTransaction(txData)
+
+	fmt.Printf("%s, %d", payload.SendFrom, len(memoryPool.Pending))
+
+	if net.Blockchain.VerifyTransaction(&tx) {
+		memoryPool.Add(tx)
+	}
+}
+func (net *Network) MineTx(memopoolTxs []blockchain.Transaction) {
+	var txs []*blockchain.Transaction
+
+	for id := range memopoolTxs {
+		fmt.Printf("tx: %s \n", memopoolTxs[id].ID)
+		tx := memopoolTxs[id]
+
+		if net.Blockchain.VerifyTransaction(&tx) {
+			txs = append(txs, &tx)
+		}
+	}
+
+	if len(txs) == 0 {
+		fmt.Println("No valid Transaction")
+	}
+
+	cbTx := blockchain.MinerTx(MinerAddress, "")
+	txs = append(txs, cbTx)
+	newBlock := net.Blockchain.MineBlock(txs)
+	UTXOs := blockchain.UXTOSet{net.Blockchain}
+	UTXOs.Compute()
+
+	logrus.Info("New Block Mined")
+
+	net.SendInv("", "block", [][]byte{newBlock.Hash})
+}
+
+func StartNode(chain *blockchain.Blockchain, listenPort, minerAddress string, miner, fullNode bool, callback func(*Network)) {
 	var r io.Reader
 	r = rand.Reader
 	MinerAddress = minerAddress
@@ -350,13 +423,18 @@ func StartNode(chain *blockchain.Blockchain, listenPort, minerAddress string, mi
 		panic(err)
 	}
 
-	GeneralChannel, _ := JoinChannel(ctx, pub, host.ID(), GeneralChannel, true)
+	generalChannel, _ := JoinChannel(ctx, pub, host.ID(), GeneralChannel, true)
 	subscribe := false
 	if miner {
 		subscribe = true
 	}
-	MiningChannel, _ := JoinChannel(ctx, pub, host.ID(), MiningChannel, subscribe)
-	ui := NewCLIUI(GeneralChannel, MiningChannel)
+	miningChannel, _ := JoinChannel(ctx, pub, host.ID(), MiningChannel, subscribe)
+	if fullNode {
+		subscribe = true
+	}
+	fullNodesChannel, _ := JoinChannel(ctx, pub, host.ID(), FullNodesChannel, subscribe)
+
+	ui := NewCLIUI(generalChannel, miningChannel, fullNodesChannel)
 
 	// setup peer discovery
 	err = SetupDiscovery(ctx, host)
@@ -364,12 +442,13 @@ func StartNode(chain *blockchain.Blockchain, listenPort, minerAddress string, mi
 		panic(err)
 	}
 	network := &Network{
-		Host:           host,
-		GeneralChannel: GeneralChannel,
-		MiningChannel:  MiningChannel,
-		Blockchain:     chain,
-		Blocks:         make(chan *blockchain.Block, 200),
-		Transactions:   make(chan *blockchain.Transaction, 200),
+		Host:             host,
+		GeneralChannel:   generalChannel,
+		MiningChannel:    miningChannel,
+		FullNodesChannel: fullNodesChannel,
+		Blockchain:       chain,
+		Blocks:           make(chan *blockchain.Block, 200),
+		Transactions:     make(chan *blockchain.Transaction, 200),
 	}
 	callback(network)
 	err = RequestBlocks(network)
@@ -388,8 +467,8 @@ func HandleEvents(net *Network) {
 		select {
 		case block := <-net.Blocks:
 			net.SendBlock("", block)
-		case _ = <-net.Transactions:
-
+		case tnx := <-net.Transactions:
+			net.SendTx(tnx)
 		}
 	}
 }
