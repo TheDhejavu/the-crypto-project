@@ -13,7 +13,6 @@ import (
 	jsonrpc "github.com/workspace/the-crypto-project/json-rpc"
 	"github.com/workspace/the-crypto-project/p2p"
 	"github.com/workspace/the-crypto-project/util/env"
-	dbutils "github.com/workspace/the-crypto-project/util/utils"
 )
 
 func init() {
@@ -48,22 +47,18 @@ func main() {
 	defer os.Exit(0)
 	var conf = env.New()
 	var address string
+	var dbname string
 
 	var rpcPort string
 	var rpcAddr string
 	var rpc bool
-	var chain *blockchain.Blockchain
 
 	cli := utils.CommandLine{
-		Blockchain: &blockchain.Blockchain{Database: nil},
-		P2p:        nil,
-	}
-
-	if blockchain.Exists() {
-		chain = new(blockchain.Blockchain)
-		cli.Blockchain = chain.ContinueBlockchain()
-		defer chain.Database.Close()
-		go dbutils.CloseDB(chain)
+		Blockchain: &blockchain.Blockchain{
+			Database:     nil,
+			DatabaseName: dbname,
+		},
+		P2p: nil,
 	}
 
 	/*
@@ -74,6 +69,8 @@ func main() {
 		Short: "Initialize the blockchain and create the genesis block",
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
+
+			cli := cli.UpdateInstance(dbname, true)
 			cli.CreateBlockchain(address)
 		},
 	}
@@ -106,6 +103,7 @@ func main() {
 		Use:   "balance",
 		Short: "Get the address balance",
 		Run: func(cmd *cobra.Command, args []string) {
+			cli := cli.UpdateInstance(dbname, true)
 			cli.GetBalance(address)
 		},
 	}
@@ -119,6 +117,7 @@ func main() {
 		Short: "Re-build and Compute Unspent transaction outputs",
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
+			cli := cli.UpdateInstance(dbname, true)
 			cli.ComputeUTXOs()
 		},
 	}
@@ -130,6 +129,7 @@ func main() {
 		Short: "Print the blocks in the blockchain",
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
+			cli := cli.UpdateInstance(dbname, true)
 			cli.PrintBlockchain()
 		},
 	}
@@ -140,7 +140,7 @@ func main() {
 	var minerAddress string
 	var miner bool
 	var fullNode bool
-	var ListenPort string
+	var listenPort string
 	var nodeCmd = &cobra.Command{
 		Use:   "startnode",
 		Short: "start a node",
@@ -151,15 +151,16 @@ func main() {
 				log.Fatalln("Miner address is required --minerAddress")
 			}
 
-			cli.StartNode(ListenPort, minerAddress, miner, fullNode, func(net *p2p.Network) {
+			cli := cli.UpdateInstance(dbname, false)
+			cli.StartNode(listenPort, minerAddress, miner, fullNode, func(net *p2p.Network) {
 				if rpc {
 					cli.P2p = net
-					go jsonrpc.StartServer(&cli, rpc, rpcPort, rpcAddr)
+					go jsonrpc.StartServer(cli, rpc, rpcPort, rpcAddr)
 				}
 			})
 		},
 	}
-	nodeCmd.Flags().StringVar(&ListenPort, "port", conf.ListenPort, "Node ID")
+	nodeCmd.Flags().StringVar(&listenPort, "port", conf.ListenPort, "Node listening port")
 	nodeCmd.Flags().StringVar(&minerAddress, "minerAddress", conf.MinerAddress, "Set miner address")
 	nodeCmd.Flags().BoolVar(&miner, "miner", conf.Miner, "Set as true if you are joining the network as a miner")
 	nodeCmd.Flags().BoolVar(&fullNode, "fullnode", conf.FullNode, "Set as true if you are joining the network as a miner")
@@ -188,8 +189,10 @@ func main() {
 	var rootCmd = &cobra.Command{
 		Use: "demon",
 		Run: func(cmd *cobra.Command, args []string) {
+			cli := cli.UpdateInstance(dbname, false)
+
 			if rpc {
-				jsonrpc.StartServer(&cli, rpc, rpcPort, rpcAddr)
+				jsonrpc.StartServer(cli, rpc, rpcPort, rpcAddr)
 			}
 		},
 	}
@@ -198,9 +201,11 @@ func main() {
 	/*
 	* HTTP FLAGS
 	 */
-	rootCmd.PersistentFlags().StringVar(&rpcPort, "rpcPort", "", " HTTP-RPC server listening port (default: 1245)")
+	rootCmd.PersistentFlags().StringVar(&rpcPort, "rpcPort", "", " HTTP-RPC server listening port (default: 5000)")
 	rootCmd.PersistentFlags().StringVar(&rpcAddr, "rpcAddr", "", "HTTP-RPC server listening interface (default: localhost)")
 	rootCmd.PersistentFlags().BoolVar(&rpc, "rpc", false, "Enable the HTTP-RPC server")
+
+	rootCmd.PersistentFlags().StringVar(&dbname, "dbname", "", "Database name")
 	rootCmd.AddCommand(
 		initCmd,
 		walletCmd,

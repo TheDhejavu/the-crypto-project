@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 
 	badger "github.com/dgraph-io/badger"
 	"github.com/sirupsen/logrus"
@@ -20,18 +21,18 @@ import (
 // Blockchain struct such that lastHash represents the lastblock hash
 // on the ledger
 type Blockchain struct {
-	LastHash []byte
-	Database *badger.DB
+	LastHash     []byte
+	Database     *badger.DB
+	DatabaseName string
 }
 
 var (
+	mutex      = &sync.Mutex{}
 	_, b, _, _ = runtime.Caller(0)
 
 	// Root folder of this project
 	Root        = filepath.Join(filepath.Dir(b), "../")
-	dbPath      = filepath.Join(Root, "./tmp/blocks")
-	dbFile      = filepath.Join(Root, "./tmp/blocks/MANIFEST")
-	genesisData = "This is the genesis data"
+	genesisData = "genesis"
 )
 
 // Check if Blockchain Database already exist
@@ -42,11 +43,19 @@ func DBExists(path string) bool {
 	return true
 }
 
-func Exists() bool {
-	return DBExists(dbPath)
+func Exists(dbname string) bool {
+	return DBExists(GetDatabasePath(dbname))
 }
-func OpenBardgerDB() *badger.DB {
-	path := dbPath
+
+func GetDatabasePath(port string) string {
+	if port != "" {
+		return filepath.Join(Root, fmt.Sprintf("./tmp/blocks_%s", port))
+	}
+	return filepath.Join(Root, "./tmp/blocks")
+}
+
+func OpenBardgerDB(dbname string) *badger.DB {
+	path := GetDatabasePath(dbname)
 
 	if DBExists(path) == false {
 		fmt.Println("No Existing Blockchian DB found, create one!")
@@ -64,7 +73,7 @@ func (chain *Blockchain) ContinueBlockchain() *Blockchain {
 	var lastHash []byte
 	var db *badger.DB
 	if chain.Database == nil {
-		db = OpenBardgerDB()
+		db = OpenBardgerDB(chain.DatabaseName)
 	} else {
 		db = chain.Database
 	}
@@ -83,14 +92,14 @@ func (chain *Blockchain) ContinueBlockchain() *Blockchain {
 		lastHash = nil
 	}
 	logrus.Infof("LastHash: %x", lastHash)
-	return &Blockchain{lastHash, db}
+	return &Blockchain{lastHash, db, chain.DatabaseName}
 }
 
 // Initialize the blockchain by creating the blockchain database
 // with a genesis block with an address
-func InitBlockchain(address string) *Blockchain {
+func InitBlockchain(address string, dbname string) *Blockchain {
 	var lastHash []byte
-	path := dbPath
+	path := GetDatabasePath(dbname)
 
 	if DBExists(path) {
 		fmt.Println("Blockchain already exist")
@@ -117,12 +126,13 @@ func InitBlockchain(address string) *Blockchain {
 	})
 	Handle(err)
 
-	return &Blockchain{lastHash, db}
+	return &Blockchain{lastHash, db, dbname}
 }
 
 // Add a block to the blockchain
 //https://github.com/dgraph-io/badger#read-write-transactions
 func (chain *Blockchain) AddBlock(block *Block) *Block {
+	mutex.Lock()
 
 	//Read-Write Operations
 	err := chain.Database.Update(func(txn *badger.Txn) error {
@@ -159,7 +169,7 @@ func (chain *Blockchain) AddBlock(block *Block) *Block {
 	})
 
 	Handle(err)
-
+	mutex.Unlock()
 	return block
 }
 
@@ -188,7 +198,7 @@ func (chain *Blockchain) GetBlock(blockHash []byte) (Block, error) {
 //Aggregate and get all block hashes in the blockchain
 func (chain *Blockchain) GetBlockHashes(height int) [][]byte {
 	var blocks [][]byte
-	
+
 	iter := chain.Iterator()
 	if iter == nil {
 		return blocks
@@ -207,7 +217,6 @@ func (chain *Blockchain) GetBlockHashes(height int) [][]byte {
 	}
 
 	return blocks
-
 }
 
 // Get Best height basically gets the height(Index) of the lastBlock
@@ -348,6 +357,7 @@ func (chain *Blockchain) FindTransaction(ID []byte) (Transaction, error) {
 			break
 		}
 	}
+	logrus.Error("Error: No Transaction with ID")
 
 	return Transaction{}, errors.New("No transaction with id")
 }
@@ -357,6 +367,9 @@ func (chain *Blockchain) GetTransaction(transaction *Transaction) map[string]Tra
 	for _, in := range transaction.Inputs {
 		// get all transaction with in.ID
 		tx, err := chain.FindTransaction(in.ID)
+		if err != nil {
+			logrus.Error("Error: Invalid Transaction Ewwww")
+		}
 		Handle(err)
 		txs[hex.EncodeToString(tx.ID)] = tx
 	}

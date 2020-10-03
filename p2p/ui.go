@@ -179,6 +179,8 @@ func (ui *CLIUI) HandleStream(net *Network, content *ChannelContent) {
 			net.HandleGetData(content)
 		case "tx":
 			net.HandleTx(content)
+		case "gettxfrompool":
+			net.HandleGetTxFromPool(content)
 		case "version":
 			net.HandleVersion(content)
 		default:

@@ -1,7 +1,7 @@
 ![logo](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/cover.png)
 # The Crypto Project
 
-This is a blockchain project that implements some of the major feature of popular cryptocurrency project like Bitcoin and ethereum using go programming language. This an experimental project for learning purposes and it contains detailed overview of how blockchain works, most importantly how this project works. This project is influenced by [Tensor programming ](https://www.youtube.com/playlist?list=PLJbE2Yu2zumCe9cO3SIyragJ8pLmVv0z9) and [Go Ethereum](https://geth.ethereum.org/docs/)
+This is a blockchain project that implements some of the major feature of popular cryptocurrency project like Bitcoin and ethereum using go programming language. This an experimental project for learning purposes and it contains detailed overview of how blockchain works, most importantly how this project works. This project inspired by [Go Ethereum](https://geth.ethereum.org/docs/)
 
 # Flow Diagram
 ![flow diagram](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/flowdiagram.jpg)
@@ -192,7 +192,7 @@ The minerAddress, miner and ListenPort Flags are optional if this flags already 
 - Smart Contract & Basic Virtual Machine (Maybe, 😃)
 - Write Test
 
-## References
+## References && Credits
 - [Blockchain Basic, A Non-technical guide](https://www.goodreads.com/book/show/34137265-blockchain-basics)
 - [MIT 6.824 Distributed Systems (Spring 2020)](https://www.youtube.com/playlist?list=PLrw6a1wE39_tb2fErI4-WkMbsvGQk9_UB)
 - [Code a simple P2P blockchain in Go!](https://medium.com/@mycoralhealth/code-a-simple-p2p-blockchain-in-go-46662601f417)

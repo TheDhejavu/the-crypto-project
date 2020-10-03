@@ -65,6 +65,7 @@ func JoinChannel(ctx context.Context, pub *pubsub.PubSub, selfID peer.ID, channe
 	}
 
 	go Channel.readLoop()
+	
 	return Channel, nil
 }
 

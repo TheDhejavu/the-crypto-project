@@ -12,6 +12,7 @@ import (
 
 	"github.com/workspace/the-crypto-project/cmd/utils"
 	blockchain "github.com/workspace/the-crypto-project/core"
+	dbutils "github.com/workspace/the-crypto-project/util/utils"
 )
 
 type API struct {
@@ -64,6 +65,9 @@ func StartServer(cli *utils.CommandLine, rpcEnabled bool, rpcPort string, rpcAdd
 		rpcEnabled,
 		cli,
 	}
+	defer cli.Blockchain.Database.Close()
+	go dbutils.CloseDB(cli.Blockchain)
+
 	err := rpc.Register(publicAPI)
 	checkError("Error registering API", err)
 	rpc.HandleHTTP()

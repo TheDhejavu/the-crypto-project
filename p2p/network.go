@@ -11,6 +11,7 @@ import (
 	"os"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/crypto"
@@ -39,6 +40,7 @@ type Network struct {
 	Blockchain       *blockchain.Blockchain
 	Blocks           chan *blockchain.Block
 	Transactions     chan *blockchain.Transaction
+	Miner            bool
 }
 
 type Version struct {
@@ -60,6 +62,11 @@ type Block struct {
 	Block    []byte
 }
 
+type TxFromPool struct {
+	SendFrom string
+	Count    int
+}
+
 type GetData struct {
 	SendFrom string
 	Type     string
@@ -74,7 +81,7 @@ type Inv struct {
 
 const (
 	version       = 1
-	commandLength = 12
+	commandLength = 20
 )
 
 var (
@@ -84,8 +91,9 @@ var (
 	MinerAddress     = ""
 	blocksInTransit  = [][]byte{}
 	memoryPool       = memopool.MemoPool{
-		map[string]blockchain.Transaction{}, 
 		map[string]blockchain.Transaction{},
+		map[string]blockchain.Transaction{},
+		sync.WaitGroup{},
 	}
 )
 
@@ -147,6 +155,7 @@ func (net *Network) HandleBlocks(content *ChannelContent) {
 
 	// fmt.Printf("Valid: %s\n", strconv.FormatBool(validate))
 	// Verify block before adding it to the blockchain
+
 	if block.IsGenesis() {
 		net.Blockchain.AddBlock(block)
 	} else {
@@ -168,6 +177,12 @@ func (net *Network) HandleBlocks(content *ChannelContent) {
 		} else {
 			utils.CloseDB(net.Blockchain)
 			log.Fatalf("We discovered an invalid block of height: %d", block.Height)
+		}
+	}
+
+	if len(block.Transactions) > 0 {
+		for _, tx := range block.Transactions {
+			memoryPool.RemoveFromAll(hex.EncodeToString(tx.ID))
 		}
 	}
 
@@ -210,6 +225,18 @@ func (net *Network) HandleGetData(content *ChannelContent) {
 
 		net.SendBlock(payload.SendFrom, &block)
 	}
+
+	if payload.Type == "tx" {
+		txID := hex.EncodeToString(payload.ID)
+		tx := memoryPool.Pending[txID]
+		if net.BelongsToMiningGroup(payload.SendFrom) {
+			memoryPool.Move(tx, "queued")
+			net.SendTxFromPool(payload.SendFrom, &tx)
+		} else {
+			net.SendTx(payload.SendFrom, &tx)
+		}
+	}
+
 }
 
 func (net *Network) SendInv(peerId string, _type string, items [][]byte) {
@@ -248,6 +275,17 @@ func (net *Network) HandleInv(content *ChannelContent) {
 			blocksInTransit = newInTransit
 		} else {
 			logrus.Info("Empty block hashes")
+		}
+	}
+
+	if payload.Type == "tx" {
+		if len(payload.Items) == 0 {
+			memoryPool.Wg.Done()
+		}
+		for _, txID := range payload.Items {
+			if memoryPool.Pending[hex.EncodeToString(txID)].ID == nil {
+				net.SendGetData(payload.SendFrom, "tx", txID)
+			}
 		}
 	}
 }
@@ -309,14 +347,50 @@ func (net *Network) HandleVersion(content *ChannelContent) {
 	}
 }
 
-func (net *Network) SendTx(transaction *blockchain.Transaction) {
+func (net *Network) SendTx(peerId string, transaction *blockchain.Transaction) {
 	memoryPool.Add(*transaction)
 
 	tnx := Tx{net.Host.ID().Pretty(), transaction.Serializer()}
 	payload := GobEncode(tnx)
 	request := append(CmdToBytes("tx"), payload...)
-	
-	net.FullNodesChannel.Publish("Recieved send transaction", request, "")
+
+	net.FullNodesChannel.Publish("Recieved send transaction", request, peerId)
+}
+
+func (net *Network) SendTxPoolInv(peerId string, _type string, items [][]byte) {
+	inventory := Inv{net.Host.ID().Pretty(), _type, items}
+	payload := GobEncode(inventory)
+	request := append(CmdToBytes("inv"), payload...)
+	net.MiningChannel.Publish("Recieved inventory", request, peerId)
+}
+
+func (net *Network) SendTxFromPool(peerId string, transaction *blockchain.Transaction) {
+
+	tnx := Tx{net.Host.ID().Pretty(), transaction.Serializer()}
+	payload := GobEncode(tnx)
+	request := append(CmdToBytes("tx"), payload...)
+
+	net.MiningChannel.Publish("Recieved send transaction", request, peerId)
+}
+
+func (net *Network) HandleGetTxFromPool(content *ChannelContent) {
+	var buff bytes.Buffer
+	var payload TxFromPool
+
+	buff.Write(content.Payload[commandLength:])
+	dec := gob.NewDecoder(&buff)
+	err := dec.Decode(&payload)
+
+	if err != nil {
+		log.Panic(err)
+	}
+
+	if len(memoryPool.Pending) >= payload.Count {
+		txs := memoryPool.GetPendingTransactions(payload.Count)
+		net.SendTxPoolInv(payload.SendFrom, "tx", txs)
+	} else {
+		net.SendTxPoolInv(payload.SendFrom, "tx", [][]byte{})
+	}
 }
 func (net *Network) HandleTx(content *ChannelContent) {
 	var buff bytes.Buffer
@@ -334,38 +408,78 @@ func (net *Network) HandleTx(content *ChannelContent) {
 	tx := blockchain.DeserializeTransaction(txData)
 
 	fmt.Printf("%s, %d", payload.SendFrom, len(memoryPool.Pending))
+	chain := net.Blockchain.ContinueBlockchain()
 
-	if net.Blockchain.VerifyTransaction(&tx) {
+	if chain.VerifyTransaction(&tx) {
 		memoryPool.Add(tx)
+		if net.Miner {
+			//Move transaction to queued
+			memoryPool.Move(tx, "queued")
+			fmt.Println("MINING")
+			//Mine transaction instantly
+			net.MineTx(memoryPool.Queued)
+		}
 	}
 }
-func (net *Network) MineTx(memopoolTxs []blockchain.Transaction) {
+func (net *Network) MineTx(memopoolTxs map[string]blockchain.Transaction) {
 	var txs []*blockchain.Transaction
+	log.Infof("MINE: %d", len(memopoolTxs))
+	chain := net.Blockchain.ContinueBlockchain()
 
 	for id := range memopoolTxs {
-		fmt.Printf("tx: %s \n", memopoolTxs[id].ID)
+		log.Infof("tx: %s \n", memopoolTxs[id].ID)
 		tx := memopoolTxs[id]
 
-		if net.Blockchain.VerifyTransaction(&tx) {
+		log.Info("tx vailidity: ", chain.VerifyTransaction(&tx))
+		if chain.VerifyTransaction(&tx) {
 			txs = append(txs, &tx)
 		}
 	}
 
 	if len(txs) == 0 {
-		fmt.Println("No valid Transaction")
+		log.Info("No valid Transaction")
 	}
 
 	cbTx := blockchain.MinerTx(MinerAddress, "")
 	txs = append(txs, cbTx)
-	newBlock := net.Blockchain.MineBlock(txs)
-	UTXOs := blockchain.UXTOSet{net.Blockchain}
+	newBlock := chain.MineBlock(txs)
+	UTXOs := blockchain.UXTOSet{chain}
 	UTXOs.Compute()
 
-	logrus.Info("New Block Mined")
+	log.Info("New Block Mined")
 
 	net.SendInv("", "block", [][]byte{newBlock.Hash})
+	memoryPool.ClearAll()
+	memoryPool.Wg.Done()
 }
 
+func (net *Network) BelongsToMiningGroup(PeerId string) bool {
+	peers := net.MiningChannel.ListPeers()
+	for _, peer := range peers {
+		Id := peer.Pretty()
+
+		if Id == PeerId {
+			return true
+		}
+	}
+
+	return false
+}
+func (net *Network) MinersEventLoop() {
+	poolCheckTicker := time.NewTicker(time.Second)
+	defer poolCheckTicker.Stop()
+
+	for {
+		select {
+		case <-poolCheckTicker.C:
+			tnx := TxFromPool{net.Host.ID().Pretty(), 1}
+			payload := GobEncode(tnx)
+			request := append(CmdToBytes("gettxfrompool"), payload...)
+			net.FullNodesChannel.Publish("Request transaction from pool", request, "")
+			memoryPool.Wg.Add(1)
+		}
+	}
+}
 func StartNode(chain *blockchain.Blockchain, listenPort, minerAddress string, miner, fullNode bool, callback func(*Network)) {
 	var r io.Reader
 	r = rand.Reader
@@ -429,6 +543,8 @@ func StartNode(chain *blockchain.Blockchain, listenPort, minerAddress string, mi
 		subscribe = true
 	}
 	miningChannel, _ := JoinChannel(ctx, pub, host.ID(), MiningChannel, subscribe)
+
+	subscribe = false
 	if fullNode {
 		subscribe = true
 	}
@@ -449,10 +565,17 @@ func StartNode(chain *blockchain.Blockchain, listenPort, minerAddress string, mi
 		Blockchain:       chain,
 		Blocks:           make(chan *blockchain.Block, 200),
 		Transactions:     make(chan *blockchain.Transaction, 200),
+		Miner:            miner,
 	}
 	callback(network)
 	err = RequestBlocks(network)
+
 	go HandleEvents(network)
+	if miner {
+		// event loop for miners to constantly send a ping to fullnodes for new transactions
+		// in order for it to be mined and added to the blockchain
+		go network.MinersEventLoop()
+	}
 
 	if err != nil {
 		panic(err)
@@ -468,7 +591,8 @@ func HandleEvents(net *Network) {
 		case block := <-net.Blocks:
 			net.SendBlock("", block)
 		case tnx := <-net.Transactions:
-			net.SendTx(tnx)
+			// mine := false
+			net.SendTx("", tnx)
 		}
 	}
 }
