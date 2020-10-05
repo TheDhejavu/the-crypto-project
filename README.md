@@ -1,7 +1,7 @@
 ![logo](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/cover.png)
 # The Crypto Project
 
-This is a blockchain project that implements some of the major feature of popular cryptocurrency project like Bitcoin and ethereum using go programming language. This an experimental project for learning purposes and it contains detailed overview of how blockchain works, most importantly how this project works. This project inspired by [Go Ethereum](https://geth.ethereum.org/docs/)
+This is a blockchain project that implements some of the major feature of popular cryptocurrency project like Bitcoin and ethereum using go programming language. This an experimental project for learning purposes and it contains detailed overview of how blockchain works, most importantly how this project works. This project was inspired by [Go Ethereum](https://geth.ethereum.org/docs/)
 
 # Flow Diagram
 ![flow diagram](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/flowdiagram.jpg)
@@ -28,21 +28,22 @@ This is a blockchain project that implements some of the major feature of popula
 | `./Binaries`| An on-demand Folder for executable E.G Wallet   |
 | `./cmd`    | CLI Scripts for interacting with the blockhain   |
 | `./wallet` | Wallet Source code.                              |
-| `./examples`| Code samples for API wrappers written in Go, Python and NodeJS                                    |
+| `./examples`| Code samples for API wrappers written in Go, Python, Typescript, Rust and JS E.T.C                                   |
 
 ### Blockchain
-Blockchain can be defined as a database that stores blocks, with every next block being linked to the previous one in a cryptographically secure way so that it’s not possible to change anything in previous blocks, it is a Decentralized system of Nodes that works in a co-ordinated way.
+Blockchain can be defined as a database that stores blocks, with every next block being linked to the previous one in form of a linked list and a cryptographically secure way so that it’s not possible to change anything in previous blocks, it is a decentralized distributed system of Nodes/Peers that works in a co-ordinated way. What are Distributed systems? this is a computing paradigm whereby two or more nodes work with each other in a coordinated fashion in order to achieve a common outcome and it's modeled in such a way that end users see it as a single logical platform. Distributed system are interestingly complex due to the ability of nodes to coordinate themselves properly
 
 The cryto-project blockchain has different actions which are made accessible via the in-built CLI and the REST API
 
-### Consensus, Blocks & Proof Of Work (POW)
+### Consensus mechanism, Blocks & Proof Of Work (POW)
+Consensus  mechanism means to reach agreements among network nodes or systems, according to the interest of the system participants(Nodes). Consensus algorithm is basically a method for achieving consistency of information accross multiple Nodes.
 
 ###  Wallet
-The wallet system, comparable to a bank account, contains a pair of public and private cryptographic keys. The keys can be used to track ownership, receive or spend cryptocurrencies. A public key allows for other wallets to make payments to the wallet's address, whereas a private key enables the spending of cryptocurrency from that address.
+The wallet system, comparable to a bank account, contains a pair of public and private cryptographic keys. The keys can be used to track ownership, receive or spend cryptocurrencies. A public key allows for other wallets to make payments to the wallet's address, whereas a private key enables the spending of cryptocurrency from that address. 
 #### NB: you can't spend your digital currency without your private key and once your private key is compromise, moving your money to a new wallet address is the best thing to do.
 
 
-The wallet system is independent of the blockchain network and it is built ontop of the `demon` Command line(the network default CLI) and also there is a dedicated executable file in the `binaries` folder coupled with basic commands for performing different actions
+The wallet system is independent of the blockchain network and it is built ontop of the `demon` Command line(the network default CLI) and also there is a dedicated executable file in the `binaries` folder coupled with basic commands for performing different actions like generating new wallet, listing existing wallets. 
 
 ##### Download https://github.com/TheDhejavu/the-crypto-project/tree/master/binaries/wallet.exe
 
@@ -92,7 +93,6 @@ Create Wallet
 Example 
 
     curl -X POST -H "Content-Type: application/json" -d '{"id": 1, "method": "API.CreateWallet", "params": []}' http://localhost:5000/_jsonrpc
-
 
 
 Get Balance
