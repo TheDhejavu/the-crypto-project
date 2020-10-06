@@ -104,7 +104,7 @@ They are available to be used in new transactions (as long as you can unlock the
  Blockchain data are quite verbose, it can range from hundrends to billions of data and computing user wallet balance from a blockchian of that size is computationally expensive in which UTXOs came in as a rescue to reduce overhead. UTXOs ain't all that clever but it's a progress, and every idea has it's tradeoff's. [Ethereum introduced it's own way to compute user balance ](https://github.com/ethereum/wiki/wiki/Design-Rationale#accounts-and-not-utxos)
 
  ### How it works (the-crypto-project context)
- UTXOs are stored on BadgerDB and specific commands were provided to handle this but Note, UTXOS are created from the blockchain starting from the genesis block and it is computed everytime a new transaction is carried out and when anew block is added.
+ UTXOs are stored on BadgerDB and specific commands were provided to handle this but Note, UTXOS are created from the blockchain starting from the genesis block and it is computed everytime a new transaction is carried out and when a new block is added as opposed everytime a user checks his/her balance.
 
 
 ### Merkle Tree
