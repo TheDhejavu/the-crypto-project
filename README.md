@@ -4,7 +4,7 @@
 This is a blockchain project that implements some of the major feature of popular cryptocurrency project like Bitcoin and ethereum using go programming language. This an experimental project for learning purposes and it contains detailed overview of how blockchain works, **most importantly how this project works**. This project was inspired by [Go Ethereum](https://geth.ethereum.org/docs/) and [bitcoin](https://bitcoin.org)
 
 # Flow Diagram
-![flow diagrautm](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/the-crypto-project-flow-diagram.svg)
+![flow diagrautm](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/the-crypto-project-flow-diagram.png)
 
 ## Prerequisite
 - Programming language: [Golang](https://golang.org/)
