@@ -103,7 +103,7 @@ They are available to be used in new transactions (as long as you can unlock the
  
  Blockchain data are quite verbose, it can range from hundrends to billions of data and computing user wallet balance from a blockchian of that size is computationally expensive in which UTXOs came in as a rescue to reduce overhead. UTXOs ain't all that clever but it's a progress, and every idea has it's tradeoff's. [Ethereum introduced it's own way to compute user balance ](https://github.com/ethereum/wiki/wiki/Design-Rationale#accounts-and-not-utxos)
 
- ### How it works (the-crypto-project context)
+ #### How it works (the-crypto-project context)
  UTXOs are stored on BadgerDB and specific commands were provided to handle this but Note, UTXOS are created from the blockchain starting from the genesis block and it is computed everytime a new transaction is carried out and when a new block is added as opposed everytime a user checks his/her balance.
 
 
@@ -118,7 +118,6 @@ The Blockchain protocol operates on top of the Internet, on a P2P network of com
 the-crypto-project achieved 100% decentralization via the use of  [libp2p-go ](https://docs.libp2p.io/) networking libraries used by popular project like [Ipfs](https://ipfs.io/), [filecoin ](https://filecoin.io/) and most recently Ethereum 2.0.
 
 ### Project Setup
-
 
 #### Node JSON-RPC server
 
