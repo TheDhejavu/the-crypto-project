@@ -120,7 +120,7 @@ the-crypto-project achieved 100% decentralization via the use of  [libp2p-go ](h
 ### Project Setup
 
 
-### Node JSON-RPC server
+#### Node JSON-RPC server
 
 
 Create Wallet
@@ -158,7 +158,7 @@ Example
 
     curl -X POST -H "Content-Type: application/json" -d '{"id": 1 , "method": "API.Send", "params": [{"sendFrom":"1D214Jcep7x7zPphLGsLdS1hHaxnwTatCW","sendTo": "15ViKshPBH6SzKun1UwmHpbAKD2mKZNtBU", "amount":0.50, "mine": true}]}' http://localhost:5000/_jsonrpc
 
-### Demon CLI
+## Demon CLI
 
 This is the official command line for the crypto project, this commandline allows developers to interact with the blockchain network
 
@@ -211,18 +211,18 @@ The address, fullnode, miner and port Flags are optional if this flags already e
 
 ## Project Setup
 
-### Add Env file with the below information (compulsory)
+#### Add Env file with the below information (compulsory)
 
     WALLET_ADDRESS_CHECKSUM = 4
 
-### Others for miners ((optional)
+#### Others for miners ((optional)
 
     WALLET_ADDRESS_CHECKSUM = 4
     MINER_ADDRESS = <YOUR_WALLET_ADDRESS>
     MINER = true
 
-### Start a node
-#### NB: Running multiple instance of the blockchain requires you to initialize a new blockchain with a --instanceid flag and also use this flag subsequently when trying to access information  related to that instance
+#### Start a node
+##### NB: Running multiple instance of the blockchain requires you to initialize a new blockchain with a --instanceid flag and also use this flag subsequently when trying to access information  related to that instance
 
 #### Initialize a blockchain
 
@@ -275,7 +275,7 @@ a command.
 ## TODO
 
 - Web Application
-- Basic Virtual Machine (Maybe) 
+- Basic Virtual Machine **(Maybe)** 
 - Test Coverage
 - Improved Error Handling
 
