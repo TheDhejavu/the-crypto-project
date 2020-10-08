@@ -221,7 +221,7 @@ The address, fullnode, miner and port Flags are optional if this flags already e
     MINER = true
 
 ### Start a node
-#### NB: Running mutiple of the blockchain requires you to initialize a new blockchain with a --instanceid flag and also use this flag subsequently when trying to access information  related to that instance
+#### NB: Running multiple instance of the blockchain requires you to initialize a new blockchain with a --instanceid flag and also use this flag subsequently when trying to access information  related to that instance
 
 #### Initialize a blockchain
     This command creates the genesis block and initialize the blockchain. Instanceid allows you to run multiple instance of the blockchain. This must be a string E.g 5000
