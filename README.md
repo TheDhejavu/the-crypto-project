@@ -191,6 +191,7 @@ Send
     demon send --sendfrom <ADDRESS> --sendto <ADDRESS> --amount <AMOUNT>
 
 Start RPC server
+
 Default port is **5000**
 
     demon --rpc --rpcport 4000
@@ -210,11 +211,11 @@ The address, fullnode, miner and port Flags are optional if this flags already e
 
 ## Project Setup
 
-### Add Env file with the below information
+### Add Env file with the below information (compulsory)
 
     WALLET_ADDRESS_CHECKSUM = 4
 
-### Others (optional) for miners
+### Others for miners ((optional)
 
     WALLET_ADDRESS_CHECKSUM = 4
     MINER_ADDRESS = <YOUR_WALLET_ADDRESS>
@@ -224,11 +225,12 @@ The address, fullnode, miner and port Flags are optional if this flags already e
 #### NB: Running multiple instance of the blockchain requires you to initialize a new blockchain with a --instanceid flag and also use this flag subsequently when trying to access information  related to that instance
 
 #### Initialize a blockchain
-    This command creates the genesis block and initialize the blockchain. Instanceid allows you to run multiple instance of the blockchain. This must be a string E.g 5000
+
+This command creates the genesis block and initialize the blockchain. Instanceid allows you to run multiple instance of the blockchain. This must be a string E.g 5000
 
     demon init --address <YOUR_WALLET_ADDERESS> --instanceid <USE_ANYTHING>
 
-### Start the blockchain instance with RPC Enabled
+#### Start the blockchain instance with RPC Enabled
 
 As a Miner
 
