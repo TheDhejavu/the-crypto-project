@@ -54,9 +54,9 @@ func (cli *CommandLine) StartNode(listenPort, minerAddress string, miner, fullNo
 	p2p.StartNode(chain, listenPort, minerAddress, miner, fullNode, fn)
 }
 
-func (cli *CommandLine) UpdateInstance(dbname string, closeDbAlways bool) *CommandLine {
-	cli.Blockchain.DatabaseName = dbname
-	if blockchain.Exists(dbname) {
+func (cli *CommandLine) UpdateInstance(InstanceId string, closeDbAlways bool) *CommandLine {
+	cli.Blockchain.InstanceId = InstanceId
+	if blockchain.Exists(InstanceId) {
 		cli.Blockchain = cli.Blockchain.ContinueBlockchain()
 	}
 	cli.CloseDbAlways = closeDbAlways
@@ -138,7 +138,7 @@ func (cli *CommandLine) CreateBlockchain(address string) {
 		log.Panic("Invalid address")
 	}
 
-	chain := blockchain.InitBlockchain(address, cli.Blockchain.DatabaseName)
+	chain := blockchain.InitBlockchain(address, cli.Blockchain.InstanceId)
 	if cli.CloseDbAlways {
 		defer chain.Database.Close()
 	}

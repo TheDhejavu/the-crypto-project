@@ -23,7 +23,7 @@ import (
 type Blockchain struct {
 	LastHash     []byte
 	Database     *badger.DB
-	DatabaseName string
+	InstanceId string
 }
 
 var (
@@ -73,7 +73,7 @@ func (chain *Blockchain) ContinueBlockchain() *Blockchain {
 	var lastHash []byte
 	var db *badger.DB
 	if chain.Database == nil {
-		db = OpenBardgerDB(chain.DatabaseName)
+		db = OpenBardgerDB(chain.InstanceId)
 	} else {
 		db = chain.Database
 	}
@@ -92,7 +92,7 @@ func (chain *Blockchain) ContinueBlockchain() *Blockchain {
 		lastHash = nil
 	}
 	logrus.Infof("LastHash: %x", lastHash)
-	return &Blockchain{lastHash, db, chain.DatabaseName}
+	return &Blockchain{lastHash, db, chain.InstanceId}
 }
 
 // Initialize the blockchain by creating the blockchain database

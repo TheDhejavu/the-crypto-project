@@ -47,7 +47,7 @@ func main() {
 	defer os.Exit(0)
 	var conf = env.New()
 	var address string
-	var dbname string
+	var instanceId string
 
 	var rpcPort string
 	var rpcAddr string
@@ -55,8 +55,8 @@ func main() {
 
 	cli := utils.CommandLine{
 		Blockchain: &blockchain.Blockchain{
-			Database:     nil,
-			DatabaseName: dbname,
+			Database:   nil,
+			InstanceId: instanceId,
 		},
 		P2p: nil,
 	}
@@ -70,7 +70,7 @@ func main() {
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 
-			cli := cli.UpdateInstance(dbname, true)
+			cli := cli.UpdateInstance(instanceId, true)
 			cli.CreateBlockchain(address)
 		},
 	}
@@ -103,7 +103,7 @@ func main() {
 		Use:   "balance",
 		Short: "Get the address balance",
 		Run: func(cmd *cobra.Command, args []string) {
-			cli := cli.UpdateInstance(dbname, true)
+			cli := cli.UpdateInstance(instanceId, true)
 			cli.GetBalance(address)
 		},
 	}
@@ -117,7 +117,7 @@ func main() {
 		Short: "Re-build and Compute Unspent transaction outputs",
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-			cli := cli.UpdateInstance(dbname, true)
+			cli := cli.UpdateInstance(instanceId, true)
 			cli.ComputeUTXOs()
 		},
 	}
@@ -129,7 +129,7 @@ func main() {
 		Short: "Print the blocks in the blockchain",
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-			cli := cli.UpdateInstance(dbname, true)
+			cli := cli.UpdateInstance(instanceId, true)
 			cli.PrintBlockchain()
 		},
 	}
@@ -148,10 +148,10 @@ func main() {
 		Run: func(cmd *cobra.Command, args []string) {
 
 			if miner && len(minerAddress) == 0 {
-				log.Fatalln("Miner address is required --minerAddress")
+				log.Fatalln("Miner address is required --address")
 			}
 
-			cli := cli.UpdateInstance(dbname, false)
+			cli := cli.UpdateInstance(instanceId, false)
 			cli.StartNode(listenPort, minerAddress, miner, fullNode, func(net *p2p.Network) {
 				if rpc {
 					cli.P2p = net
@@ -161,7 +161,7 @@ func main() {
 		},
 	}
 	nodeCmd.Flags().StringVar(&listenPort, "port", conf.ListenPort, "Node listening port")
-	nodeCmd.Flags().StringVar(&minerAddress, "minerAddress", conf.MinerAddress, "Set miner address")
+	nodeCmd.Flags().StringVar(&minerAddress, "address", conf.MinerAddress, "Set miner address")
 	nodeCmd.Flags().BoolVar(&miner, "miner", conf.Miner, "Set as true if you are joining the network as a miner")
 	nodeCmd.Flags().BoolVar(&fullNode, "fullnode", conf.FullNode, "Set as true if you are joining the network as a miner")
 
@@ -181,15 +181,15 @@ func main() {
 			cli.Send(sendFrom, sendTo, amount, mine)
 		},
 	}
-	sendCmd.Flags().StringVar(&sendFrom, "sendFrom", "", "Sender's wallet address")
-	sendCmd.Flags().StringVar(&sendTo, "sendTo", "", "Reciever's wallet address")
+	sendCmd.Flags().StringVar(&sendFrom, "sendfrom", "", "Sender's wallet address")
+	sendCmd.Flags().StringVar(&sendTo, "sendto", "", "Reciever's wallet address")
 	sendCmd.Flags().Float64Var(&amount, "amount", float64(0), "Amount of token to send")
 	sendCmd.Flags().BoolVar(&mine, "mine", false, "Set if you want your Node to mine the transaction instantly")
 
 	var rootCmd = &cobra.Command{
 		Use: "demon",
 		Run: func(cmd *cobra.Command, args []string) {
-			cli := cli.UpdateInstance(dbname, false)
+			cli := cli.UpdateInstance(instanceId, false)
 
 			if rpc {
 				jsonrpc.StartServer(cli, rpc, rpcPort, rpcAddr)
@@ -201,11 +201,11 @@ func main() {
 	/*
 	* HTTP FLAGS
 	 */
-	rootCmd.PersistentFlags().StringVar(&rpcPort, "rpcPort", "", " HTTP-RPC server listening port (default: 5000)")
-	rootCmd.PersistentFlags().StringVar(&rpcAddr, "rpcAddr", "", "HTTP-RPC server listening interface (default: localhost)")
+	rootCmd.PersistentFlags().StringVar(&rpcPort, "rpcport", "", " HTTP-RPC server listening port (default: 5000)")
+	rootCmd.PersistentFlags().StringVar(&rpcAddr, "rpcaddr", "", "HTTP-RPC server listening interface (default: localhost)")
 	rootCmd.PersistentFlags().BoolVar(&rpc, "rpc", false, "Enable the HTTP-RPC server")
 
-	rootCmd.PersistentFlags().StringVar(&dbname, "dbname", "", "Database name")
+	rootCmd.PersistentFlags().StringVar(&instanceId, "instanceid", "", "Blockchain instance")
 	rootCmd.AddCommand(
 		initCmd,
 		walletCmd,

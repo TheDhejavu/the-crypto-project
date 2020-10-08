@@ -4,7 +4,7 @@
 This is a blockchain project that implements some of the major feature of popular cryptocurrency project like Bitcoin and ethereum using go programming language. This an experimental project for learning purposes and it contains detailed overview of how blockchain works, **most importantly how this project works**. This project was inspired by [Go Ethereum](https://geth.ethereum.org/docs/) and [bitcoin](https://bitcoin.org)
 
 # Flow Diagram
-![flow diagram](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/flowdiagram.jpg)
+![flow diagrautm](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/flowdiagram.jpg)
 
 ## Prerequisite
 - Programming language: [Golang](https://golang.org/)
@@ -176,11 +176,11 @@ List Addresses
 
 Get Balance
 
-    demon wallet balance --address ADDRESS
+    demon wallet balance --address <ADDRESS>
 
 Print blockchain
 
-    demon printblockchain
+    demon print
     
 Compute UTXOs
 
@@ -188,38 +188,88 @@ Compute UTXOs
 
 Send
 
-    demon send --sendFrom ADDRESS --sendTo ADDRESS --amount AMOUNT 
+    demon send --sendfrom <ADDRESS> --sendto <ADDRESS> --amount <AMOUNT>
+
+Start RPC server
+
+    Default port is 5000
+
+    demon --rpc --rpcport 4000
 
 Start Node
 
-The minerAddress, miner and ListenPort Flags are optional if this flags already exist in `.env` file
+As a Miner
 
-    demon startnode --ListenPort PORT --minerAddress MINER_ADDRESS --miner
+    demon startnode --port <PORT> --mineraddress <MINER_ADDRESS> --miner --instanceid <INSTANCE_ID>
+
+As a fullnode
+
+    demon startnode --port <PORT>  --fullnode --instanceid <INSTANCE_ID>
+
+The minerAddress, fullnode, miner and port Flags are optional if this flags already exist in the `.env` file
+
+
+## Project Setup
+
+### Add Env file with the below information
+
+    WALLET_ADDRESS_CHECKSUM = 4
+
+### Others (optional) for miners
+
+    WALLET_ADDRESS_CHECKSUM = 4
+    MINER_ADDRESS = <YOUR_WALLET_ADDRESS>
+    MINER = true
+
+### Start a node
+#### NB: To run a different intance of the blockchain you have to initialize a new blockchain with a --instanceid flag and also use flag subsequently when trying to access information  related to that node
+
+#### Initialize a blockchain
+    This command creates the genesis block and initialize the blockchain. Instanceid allows you to run multiple instance of the blockchain. This must be a string E.g 5000
+
+    demon init --address <YOUR_WALLET_ADDERESS> --instanceid <USE_ANYTHING>
+
+### Start the blockchain instance with RPC Enabled
+
+As a Miner
+
+    demon startnode --port <PORT> --address <MINER_ADDRESS> --miner --instanceid <INSTANCE_ID> --rpc --rpcport 8889
+
+As a fullnode
+
+    demon startnode --port <PORT> --fullnode --instanceid <INSTANCE_ID> --rpc --rpcport 5898
+
+As an Ordinary Node
+
+    demon startnode --instanceid <INSTANCE_ID> --rpc --rpcport 7789
 
 #### Command Usage
 
     Usage:
-        demon [flags]
-        demon [command]
+    demon [flags]
+    demon [command]
 
     Available Commands:
-        computeutxos Re-build and Compute Unspent transaction outputs
+        computeutxos Re-build and Compute Unspent transaction
+        outputs
         help         Help about any command
-        init         Initialize the blockchain and create the genesis block
+        init         Initialize the blockchain and create the
+        genesis block
         print        Print the blocks in the blockchain
-        send         Send x amount of token to address from local
-        wallet address
+        send         Send x amount of token to address from local wallet address
         startnode    start a node
         wallet       Manage wallets
 
     Flags:
-            --address string   Wallet address
-        -h, --help             help for demon
-            --rpc              Enable the HTTP-RPC server
-            --rpcAddr string   HTTP-RPC server listening interface (default: localhost)
-            --rpcPort int       HTTP-RPC server listening port (default: 1245)
+            --address string      Wallet address
+        -h, --help                help for demon
+            --instanceid string   Blockchain instance
+            --rpc                 Enable the HTTP-RPC server
+            --rpcaddr string      HTTP-RPC server listening interface (default: localhost)
+            --rpcport string       HTTP-RPC server listening port (default: 5000)
 
-    Use "demon [command] --help" for more information about a command.
+    Use "demon [command] --help" for more information about
+a command.
 
 ## TODO
 
