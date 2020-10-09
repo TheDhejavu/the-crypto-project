@@ -132,6 +132,10 @@ The Blockchain protocol operates on top of the Internet, on a P2P network of com
 
 the-crypto-project achieved 100% decentralization via the use of  [libp2p-go ](https://docs.libp2p.io/) networking libraries used by popular project like [Ipfs](https://ipfs.io/), [filecoin ](https://filecoin.io/) and most recently Ethereum 2.0.
 
+# Flow Diagram
+
+![flow diagram](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/networking-overview.png)
+
 ### Project Setup
 
 #### Node JSON-RPC server
