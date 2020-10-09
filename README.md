@@ -70,7 +70,7 @@ The wallet system, comparable to a bank account, contains a pair of public and p
 
 #### Flow diagram 
 
-![Wallet system](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/rsz_wallet1.png)
+![Wallet system](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/rsz_wallet.jpg)
 
 #### NB: you can't spend your digital currency without your private key and once your private key is compromise, moving your money to a new wallet address is the best thing to do.
 
@@ -268,8 +268,7 @@ As an Ordinary Node
         computeutxos Re-build and Compute Unspent transaction
         outputs
         help         Help about any command
-        init         Initialize the blockchain and create the
-        genesis block
+        init         Initialize the blockchain and create the genesis block
         print        Print the blocks in the blockchain
         send         Send x amount of token to address from local wallet address
         startnode    start a node
