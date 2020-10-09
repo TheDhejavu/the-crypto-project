@@ -111,7 +111,10 @@ They are available to be used in new transactions (as long as you can unlock the
 
 A Merkle tree can be simply defined as a binary hash tree data structure , composed of a set of nodes with a large number of leaf nodes at the bottom of the tree containing the underlying data, a set of intermediate nodes where each node is the hash of its two children, and finally a single root node, also formed from the hash of its two children, representing the "top" of the tree called the merkle root, which enables the quick verification of blockchain data, as well as quick movement of large amounts of data from one computer node to the other on the blockchain network. The transactions are executed on a merkle tree algorithm to generate a single hash which is a string of numbers and letters that can be used to verify that a given set of data is the same as the original set of transactions. 
 
+### Flow diagram 
+
 ![Merkle Tree](https://www.researchgate.net/profile/Mansi_Bosamia/publication/327601654/figure/fig1/AS:670030102556681@1536759033088/An-example-of-Merkle-Tree.jpg)
+
 [Source](https://www.researchgate.net/figure/An-example-of-Merkle-Tree_fig1_327601654)
 
 ### Networking (Peer-2-Peer)
