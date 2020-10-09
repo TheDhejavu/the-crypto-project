@@ -57,7 +57,7 @@ Consensus  mechanism means to reach agreements among network nodes or systems. I
 
 #### Blocks Diagram
 
-![Blocks](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/wallet.png)
+![Blocks](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/blocks.png)
 
 #### How we know that a block is valid ?
 We basically check for two things.
@@ -70,7 +70,7 @@ The wallet system, comparable to a bank account, contains a pair of public and p
 
 #### Flow diagram 
 
-![Wallet system](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/wallet.png)
+![Wallet system](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/rsz_wallet1.png)
 
 #### NB: you can't spend your digital currency without your private key and once your private key is compromise, moving your money to a new wallet address is the best thing to do.
 
