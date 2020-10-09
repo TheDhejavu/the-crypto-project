@@ -55,6 +55,10 @@ The-crypto-project only supports **1 fullnode** and **1 mining node** with **inf
 ### Consensus mechanism,Mining, Blocks & Proof Of Work (POW)
 Consensus  mechanism means to reach agreements among network nodes or systems. It fosters consistency of information accross multiple Nodes. Most financial institution today are centralized with lot's of restrictions and regulations, blockchian helps remove that barrier and consensus mechanism is an essential part of the blockchain network  because it allows every nodes in the network to maintain an identical copy of the database. Otherwise, we might end up with conflicting information, undermining the entire purpose of the blockchain network.  Bitcoin was the first cryptocurrency to solve the problem of distributed consensus in a trustless network by using the idea behind [Hashcash](http://www.hashcash.org/). Hashcash is a proof-of-work algorithm, which has been used as a denial-of-service (Dos)counter measure technique in a number of systems. Proof of work fosters minting of new digital currency in blockchain network by allowing Nodes to perfrorm expensive computer calculation, also called **mining**, that needs to be performed in order to create a new group of trustless transactions that forms a **block** on a distributed ledger called **blockchain**. The key purpose of this is to prevent [double spending](https://en.wikipedia.org/wiki/Double-spending), [distributed denial-of-service attack (DDoS)](https://en.wikipedia.org/wiki/Denial-of-service_attack) E.T.C. There are different kinds of consensus mechanism algorithms which work on different principles E.G [Proof of Capacity (POC)](https://www.investopedia.com/terms/c/consensus-mechanism-cryptocurrency.asp) and  [proof of stake (POS)](https://www.investopedia.com/terms/p/proof-stake-pos.asp) but this project implements the Proof of work algorithm used in bitcoin & litecoin
 
+#### Blocks Diagram
+
+![Blocks](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/wallet.png)
+
 #### How we know that a block is valid ?
 We basically check for two things.
 1. We Check if the previous block referenced by the block exists and is valid.
@@ -63,6 +67,11 @@ We basically check for two things.
 
 ###  Wallet
 The wallet system, comparable to a bank account, contains a pair of public and private cryptographic keys. The keys can be used to track ownership, receive or spend cryptocurrencies. A public key allows for other wallets to make payments to the wallet's address, whereas a private key enables the spending of cryptocurrency from that address. 
+
+#### Flow diagram 
+
+![Wallet system](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/wallet.png)
+
 #### NB: you can't spend your digital currency without your private key and once your private key is compromise, moving your money to a new wallet address is the best thing to do.
 
 
