@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -146,7 +147,7 @@ func main() {
 		Short: "start a node",
 		Args:  cobra.MinimumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-
+			fmt.Println(miner)
 			if miner && len(minerAddress) == 0 {
 				log.Fatalln("Miner address is required --address")
 			}

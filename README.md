@@ -79,6 +79,10 @@ The wallet system is independent of the blockchain network and it is built ontop
 
 ##### Download https://github.com/TheDhejavu/the-crypto-project/tree/master/binaries/wallet.exe
 
+Or Re-Build Wallet binaries by navigating [to this folder](https://github.com/TheDhejavu/the-crypto-project/tree/master/cmd/wallet) and run the below command to build the cli
+
+    go build
+     
 #### Via Standalone Binaries
 #### Commands 
 
@@ -110,10 +114,10 @@ They are available to be used in new transactions (as long as you can unlock the
 
 #### Why do we need this ?
  
- Blockchain data are quite verbose, it can range from hundrends to billions of data and computing user wallet balance from a blockchian of that size is computationally expensive in which UTXOs came in as a rescue to reduce overhead. UTXOs ain't all that clever but it's a progress, and every idea has it's tradeoff's. [Ethereum introduced it's own way to compute user balance ](https://github.com/ethereum/wiki/wiki/Design-Rationale#accounts-and-not-utxos)
+Blockchain data are quite verbose, it can range from hundrends to billions of data and computing user wallet balance from a blockchian of that size is computationally expensive in which UTXOs came in as a rescue to reduce overhead. UTXOs ain't all that clever but it's a progress, and every idea has it's tradeoff's. [Ethereum introduced it's own way to compute user balance ](https://github.com/ethereum/wiki/wiki/Design-Rationale#accounts-and-not-utxos)
 
- #### How it works (the-crypto-project context)
- UTXOs are stored on BadgerDB and specific commands were provided to handle this but Note, UTXOS are created from the blockchain starting from the genesis block and it is computed everytime a new transaction is carried out and when a new block is added as opposed everytime a user checks his/her balance.
+#### How it works (the-crypto-project context)
+UTXOs are stored on BadgerDB and specific commands were provided to handle this but Note, UTXOS are created from the blockchain starting from the genesis block and it is computed everytime a new transaction is carried out and when a new block is added as opposed everytime a user checks his/her balance.
 
 
 ### Merkle Tree
@@ -141,49 +145,54 @@ the-crypto-project achieved 100% decentralization via the use of  [libp2p-go ](h
 
 This is the official command line for the crypto project, this commandline allows developers to interact with the blockchain network
 
-##### CLI https://github.com/TheDhejavu/the-crypto-project/tree/master/cmd/chain
+##### CLI https://github.com/TheDhejavu/the-crypto-project/tree/master/cmd/demon
 
-#### Commands 
+### Build CLI
+Navigate [to this folder](https://github.com/TheDhejavu/the-crypto-project/tree/master/cmd/demon) and run the below command to build the cli
+
+    go build
+
+#### Commands to execute
 
 Generate new wallet
 
-    demon wallet new
+    ./demon wallet new
 
 List Addresses
 
-    demon wallet listaddress
+    ./demon wallet listaddress
 
 Get Balance
 
-    demon wallet balance --address <ADDRESS>
+    ./demon wallet balance --address <ADDRESS>
 
 Print blockchain
 
-    demon print
+    ./demon print
     
 Compute UTXOs
 
-    demon computeutxos
+    ./demon computeutxos
 
 Send
 
-    demon send --sendfrom <ADDRESS> --sendto <ADDRESS> --amount <AMOUNT>
+    ./demon send --sendfrom <ADDRESS> --sendto <ADDRESS> --amount <AMOUNT>
 
 Start RPC server
 
 Default port is **5000**
 
-    demon --rpc --rpcport 4000
+    ./demon --rpc --rpcport 4000
 
 Start Node
 
 As a Miner
 
-    demon startnode --port <PORT> --address <MINER_ADDRESS> --miner --instanceid <INSTANCE_ID>
+    ./demon startnode --port <PORT> --address <MINER_ADDRESS> --miner --instanceid <INSTANCE_ID>
 
 As a fullnode
 
-    demon startnode --port <PORT>  --fullnode --instanceid <INSTANCE_ID>
+    ./demon startnode --port <PORT>  --fullnode --instanceid <INSTANCE_ID>
 
 The address, fullnode, miner and port Flags are optional if this flags already exist in the `.env` file
 
@@ -207,21 +216,21 @@ The address, fullnode, miner and port Flags are optional if this flags already e
 
 This command creates the genesis block and initialize the blockchain. Instanceid allows you to run multiple instance of the blockchain. This must be a string E.g 5000
 
-    demon init --address <YOUR_WALLET_ADDERESS> --instanceid <USE_ANYTHING>
+    ./demon init --address <YOUR_WALLET_ADDERESS> --instanceid <USE_ANYTHING>
 
 #### Start the blockchain instance with RPC Enabled
 
 As a Miner
 
-    demon startnode --port <PORT> --address <MINER_ADDRESS> --miner --instanceid <INSTANCE_ID> --rpc --rpcport 8889
+    ./demon startnode --port <PORT> --address <MINER_ADDRESS> --miner --instanceid <INSTANCE_ID> --rpc --rpcport 8889
 
 As a fullnode
 
-    demon startnode --port <PORT> --fullnode --instanceid <INSTANCE_ID> --rpc --rpcport 5898
+    ./demon startnode --port <PORT> --fullnode --instanceid <INSTANCE_ID> --rpc --rpcport 5898
 
 As an Ordinary Node
 
-    demon startnode --instanceid <INSTANCE_ID> --rpc --rpcport 7789
+    ./demon startnode --instanceid <INSTANCE_ID> --rpc --rpcport 7789
 
 #### Node JSON-RPC server
 
@@ -279,13 +288,14 @@ Example
     Flags:
             --address string      Wallet address
         -h, --help                help for demon
-            --instanceid string   Blockchain instance
+            --instanceid string   Node instance
             --rpc                 Enable the HTTP-RPC server
             --rpcaddr string      HTTP-RPC server listening interface  (default:localhost)
             --rpcport string       HTTP-RPC server listening port (default: 5000)
 
     Use "demon [command] --help" for more information about
 a command.
+
 
 ## TODO
 

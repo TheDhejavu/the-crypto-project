@@ -21,8 +21,8 @@ import (
 // Blockchain struct such that lastHash represents the lastblock hash
 // on the ledger
 type Blockchain struct {
-	LastHash     []byte
-	Database     *badger.DB
+	LastHash   []byte
+	Database   *badger.DB
 	InstanceId string
 }
 
@@ -43,8 +43,8 @@ func DBExists(path string) bool {
 	return true
 }
 
-func Exists(dbname string) bool {
-	return DBExists(GetDatabasePath(dbname))
+func Exists(instanceId string) bool {
+	return DBExists(GetDatabasePath(instanceId))
 }
 
 func GetDatabasePath(port string) string {
@@ -54,13 +54,13 @@ func GetDatabasePath(port string) string {
 	return filepath.Join(Root, "./tmp/blocks")
 }
 
-func OpenBardgerDB(dbname string) *badger.DB {
-	path := GetDatabasePath(dbname)
+func OpenBardgerDB(instanceId string) *badger.DB {
+	path := GetDatabasePath(instanceId)
 
-	if DBExists(path) == false {
-		fmt.Println("No Existing Blockchian DB found, create one!")
-		runtime.Goexit()
-	}
+	// if DBExists(path) == false {
+	// 	fmt.Println("No Existing Blockchian DB found, create one!")
+	// 	runtime.Goexit()
+	// }
 
 	opts := badger.DefaultOptions(path)
 	db, err := OpenDB(path, opts)
@@ -97,9 +97,9 @@ func (chain *Blockchain) ContinueBlockchain() *Blockchain {
 
 // Initialize the blockchain by creating the blockchain database
 // with a genesis block with an address
-func InitBlockchain(address string, dbname string) *Blockchain {
+func InitBlockchain(address string, instanceId string) *Blockchain {
 	var lastHash []byte
-	path := GetDatabasePath(dbname)
+	path := GetDatabasePath(instanceId)
 
 	if DBExists(path) {
 		fmt.Println("Blockchain already exist")
@@ -126,7 +126,7 @@ func InitBlockchain(address string, dbname string) *Blockchain {
 	})
 	Handle(err)
 
-	return &Blockchain{lastHash, db, dbname}
+	return &Blockchain{lastHash, db, instanceId}
 }
 
 // Add a block to the blockchain

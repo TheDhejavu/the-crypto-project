@@ -29,7 +29,7 @@ import (
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	blockchain "github.com/workspace/the-crypto-project/core"
 	"github.com/workspace/the-crypto-project/memopool"
-	"github.com/workspace/the-crypto-project/util/utils"
+	appUtils "github.com/workspace/the-crypto-project/util/utils"
 )
 
 type Network struct {
@@ -175,7 +175,7 @@ func (net *Network) HandleBlocks(content *ChannelContent) {
 				memoryPool.RemoveFromAll(txID)
 			}
 		} else {
-			utils.CloseDB(net.Blockchain)
+			appUtils.CloseDB(net.Blockchain)
 			log.Fatalf("We discovered an invalid block of height: %d", block.Height)
 		}
 	}
@@ -488,7 +488,7 @@ func StartNode(chain *blockchain.Blockchain, listenPort, minerAddress string, mi
 	defer cancel()
 
 	defer chain.Database.Close()
-	go utils.CloseDB(chain)
+	go appUtils.CloseDB(chain)
 
 	// Creates a new RSA key pair for this host.
 	prvKey, _, err := crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, r)

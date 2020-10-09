@@ -3,16 +3,15 @@ package rpc
 import (
 	"fmt"
 	"io"
-	"log"
 	"net"
 	"net/http"
 	"net/rpc"
 	"net/rpc/jsonrpc"
 	"os"
-
+	log "github.com/sirupsen/logrus"
 	"github.com/workspace/the-crypto-project/cmd/utils"
 	blockchain "github.com/workspace/the-crypto-project/core"
-	dbutils "github.com/workspace/the-crypto-project/util/utils"
+	appUtils "github.com/workspace/the-crypto-project/util/utils"
 )
 
 type API struct {
@@ -66,7 +65,7 @@ func StartServer(cli *utils.CommandLine, rpcEnabled bool, rpcPort string, rpcAdd
 		cli,
 	}
 	defer cli.Blockchain.Database.Close()
-	go dbutils.CloseDB(cli.Blockchain)
+	go appUtils.CloseDB(cli.Blockchain)
 
 	err := rpc.Register(publicAPI)
 	checkError("Error registering API", err)
@@ -81,7 +80,7 @@ func StartServer(cli *utils.CommandLine, rpcEnabled bool, rpcPort string, rpcAdd
 	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
 		io.WriteString(res, "RPC SERVER LIVE!")
 	})
-	log.Printf("Serving rpc on port %s", port)
+	log.Info("Serving rpc on port %s", port)
 
 	for {
 		conn, err := listener.Accept()
@@ -97,7 +96,7 @@ func StartServer(cli *utils.CommandLine, rpcEnabled bool, rpcPort string, rpcAdd
 				w.WriteHeader(200)
 				err := rpc.ServeRequest(serverCodec)
 				if err != nil {
-					log.Printf("Error while serving JSON request: %v", err)
+					log.Errorf("Error while serving JSON request: %v", err)
 					http.Error(w, "Error while serving JSON request, details have been logged.", 500)
 					return
 				}
@@ -109,7 +108,7 @@ func StartServer(cli *utils.CommandLine, rpcEnabled bool, rpcPort string, rpcAdd
 
 func checkError(message string, err error) {
 	if err != nil {
-		fmt.Println(message, err.Error())
+		log.Info(message, err.Error())
 		os.Exit(1)
 	}
 }
