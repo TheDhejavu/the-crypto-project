@@ -126,55 +126,16 @@ A Merkle tree can be simply defined as a binary hash tree data structure , compo
 
 [Source](https://www.researchgate.net/figure/An-example-of-Merkle-Tree_fig1_327601654)
 
-### Networking (Peer-2-Peer)
+### Networking (peer-to-peer)
 
 The Blockchain protocol operates on top of the Internet, on a P2P network of computers that run the protocol and hold an identical copy of the ledger of transactions , enabling P2P value transactions without a middleman through consensus mechanism. In computing, p2p is a network of peers that enables the storage and sharing of files with equal power( might differs in terms of computation) and functionality. They can act as both a client and a server, exchanging information in realtime and when a node acts as a client, they download files from other network nodes. But when they are working as a server, they are the source from which other nodes can download files. P2P networks don’t have a single point of failure and enables a system to continue operating properly in the event of the failure know as **fault tolerance**. The P2P network is an essential part of the blockchain network because it allows the distribution of blockchain data across mulitple node/peer, it prevents the Denial-of-Service (DoS) attacks that plague numerous systems, and also renders them resistant to censorship by central authorities. The major limitation of P2p is the ability to maintain consistent in data across all peers (subjective) and also proof of work is way too computationally expensive for a less powerful computer and this will only get worse as the Blockchain gets bigger with an increase in difficulty which means nodes who has less computational power to participate will eventually leave, but on the bright side, P2P makes decentralization possible and provides overall security for the blockchain.
 
-the-crypto-project achieved 100% decentralization via the use of  [libp2p-go ](https://docs.libp2p.io/) networking libraries used by popular project like [Ipfs](https://ipfs.io/), [filecoin ](https://filecoin.io/) and most recently Ethereum 2.0.
+the-crypto-project achieved 100% decentralization via the use of  [libp2p-go ](https://docs.libp2p.io/) networking libraries used by popular project like [Ipfs](https://ipfs.io/), [filecoin ](https://filecoin.io/) and most recently [Ethereum 2.0](https://github.com/ethereum/eth2.0-specs/pull/1328).
 
 #### Flow Diagram
 
 ![flow diagram](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/networking-overview.png)
 
-### Project Setup
-
-#### Node JSON-RPC server
-
-
-Create Wallet
-
-Example 
-
-    curl -X POST -H "Content-Type: application/json" -d '{"id": 1, "method": "API.CreateWallet", "params": []}' http://localhost:5000/_jsonrpc
-
-
-Get Balance
-
-Example 
-
-    curl -X POST -H "Content-Type: application/json" -d '{"id": 1, "method": "API.GetBalance", "params": [{"Address":"1EWXfMkVj3dAytVuUEHUdoAKdEfAH99rxa"}]}' http://localhost:5000/_jsonrpc
-
-
-
-Get Blockchain
-
-Example 
-
-    curl -X POST -H "Content-Type: application/json" -d '{"id": 1,"method": "API.GetBlockchain", "params": []}' http://localhost:5000/_jsonrpc
-
-
-Get Block by Height
-
-Example 
-
-    curl -X POST -H "Content-Type: application/json" -d '{"id": 1,"method": "API.GetBlockByHeight", "params": ["Height":1]}' http://localhost:5000/_jsonrpc
-
-
-Send
-
-Example
-
-    curl -X POST -H "Content-Type: application/json" -d '{"id": 1 , "method": "API.Send", "params": [{"sendFrom":"1D214Jcep7x7zPphLGsLdS1hHaxnwTatCW","sendTo": "15ViKshPBH6SzKun1UwmHpbAKD2mKZNtBU", "amount":0.50, "mine": true}]}' http://localhost:5000/_jsonrpc
 
 ## Demon CLI
 
@@ -261,6 +222,44 @@ As a fullnode
 As an Ordinary Node
 
     demon startnode --instanceid <INSTANCE_ID> --rpc --rpcport 7789
+
+#### Node JSON-RPC server
+
+Create Wallet
+
+Example 
+
+    curl -X POST -H "Content-Type: application/json" -d '{"id": 1, "method": "API.CreateWallet", "params": []}' http://localhost:5000/_jsonrpc
+
+
+Get Balance
+
+Example 
+
+    curl -X POST -H "Content-Type: application/json" -d '{"id": 1, "method": "API.GetBalance", "params": [{"Address":"1EWXfMkVj3dAytVuUEHUdoAKdEfAH99rxa"}]}' http://localhost:5000/_jsonrpc
+
+
+
+Get Blockchain
+
+Example 
+
+    curl -X POST -H "Content-Type: application/json" -d '{"id": 1,"method": "API.GetBlockchain", "params": []}' http://localhost:5000/_jsonrpc
+
+
+Get Block by Height
+
+Example 
+
+    curl -X POST -H "Content-Type: application/json" -d '{"id": 1,"method": "API.GetBlockByHeight", "params": ["Height":1]}' http://localhost:5000/_jsonrpc
+
+
+Send
+
+Example
+
+    curl -X POST -H "Content-Type: application/json" -d '{"id": 1 , "method": "API.Send", "params": [{"sendFrom":"1D214Jcep7x7zPphLGsLdS1hHaxnwTatCW","sendTo": "15ViKshPBH6SzKun1UwmHpbAKD2mKZNtBU", "amount":0.50, "mine": true}]}' http://localhost:5000/_jsonrpc
+
 
 #### Command Usage
 
