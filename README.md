@@ -273,7 +273,7 @@ a command.
 
 ## TODO
 
-- Web Application
+- Improved Memorypool and Mining implementation
 - Basic Virtual Machine **(Maybe)** 
 - Test Coverage
 - Improved Error Handling
