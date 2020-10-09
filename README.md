@@ -268,8 +268,7 @@ Example
     demon [command]
 
     Available Commands:
-        computeutxos Re-build and Compute Unspent transaction
-        outputs
+        computeutxos Re-build and Compute Unspent transaction outputs
         help         Help about any command
         init         Initialize the blockchain and create the genesis block
         print        Print the blocks in the blockchain
@@ -282,7 +281,7 @@ Example
         -h, --help                help for demon
             --instanceid string   Blockchain instance
             --rpc                 Enable the HTTP-RPC server
-            --rpcaddr string      HTTP-RPC server listening interface (default: localhost)
+            --rpcaddr string      HTTP-RPC server listening interface  (default:localhost)
             --rpcport string       HTTP-RPC server listening port (default: 5000)
 
     Use "demon [command] --help" for more information about
