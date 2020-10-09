@@ -194,14 +194,14 @@ The address, fullnode, miner and port Flags are optional if this flags already e
 
     WALLET_ADDRESS_CHECKSUM = 4
 
-### Others for miners ((optional)
+### Others for miners (optional)
 
     WALLET_ADDRESS_CHECKSUM = 4
     MINER_ADDRESS = <YOUR_WALLET_ADDRESS>
     MINER = true
 
 ### Start a node
-##### NB: Running multiple instance of the blockchain requires you to initialize a new blockchain with a --instanceid flag and also use this flag subsequently when trying to access information  related to that instance
+##### NB: Running multiple instance of the blockchain requires you to initialize a new blockchain with a --instanceid flag and also use this flag subsequently when trying to access information  related to that instance.
 
 #### Initialize a blockchain
 
