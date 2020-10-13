@@ -8,6 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	blockchain "github.com/workspace/the-crypto-project/core"
 	"github.com/workspace/the-crypto-project/p2p"
+	"github.com/workspace/the-crypto-project/util/utils"
 	"github.com/workspace/the-crypto-project/wallet"
 )
 
@@ -55,6 +56,7 @@ func (cli *CommandLine) StartNode(listenPort, minerAddress string, miner, fullNo
 }
 
 func (cli *CommandLine) UpdateInstance(InstanceId string, closeDbAlways bool) *CommandLine {
+	utils.SetLog(InstanceId)
 	cli.Blockchain.InstanceId = InstanceId
 	if blockchain.Exists(InstanceId) {
 		cli.Blockchain = cli.Blockchain.ContinueBlockchain()
@@ -100,7 +102,7 @@ func (cli *CommandLine) Send(from string, to string, amount float64, mineNow boo
 
 	tx, err := blockchain.NewTransaction(&wallet, to, amount, &utxos)
 	if err != nil {
-		fmt.Println(err)
+		log.Error(err)
 		return SendResponse{
 			Error: &Error{
 				Code:    5028,
@@ -112,6 +114,8 @@ func (cli *CommandLine) Send(from string, to string, amount float64, mineNow boo
 
 		cbTx := blockchain.MinerTx(from, "")
 		txs := []*blockchain.Transaction{cbTx, tx}
+		log.Info("Transaction executed")
+
 		block := chain.MineBlock(txs)
 		utxos.Update(block)
 
@@ -121,10 +125,10 @@ func (cli *CommandLine) Send(from string, to string, amount float64, mineNow boo
 	} else {
 		if cli.P2p != nil {
 			cli.P2p.Transactions <- tx
+			log.Info("Transaction in transit to fullnode memory pool")
 		}
-		fmt.Println("")
 	}
-	log.Info("Successful transaction")
+
 	return SendResponse{
 		SendTo:    to,
 		SendFrom:  from,

@@ -79,7 +79,7 @@ The wallet system is independent of the blockchain network and it is built ontop
 
 ##### Download https://github.com/TheDhejavu/the-crypto-project/tree/master/binaries/wallet.exe
 
-Or Re-Build Wallet binaries by navigating [to this folder](https://github.com/TheDhejavu/the-crypto-project/tree/master/cmd/wallet) and run the below command to build the cli
+Or Re-Build Wallet by navigating [to this folder](https://github.com/TheDhejavu/the-crypto-project/tree/master/cmd/wallet) and proceed to execute the below command to build the wallet
 
     go build
      
@@ -147,7 +147,7 @@ This is the official command line for the crypto project, this commandline allow
 
 ##### CLI https://github.com/TheDhejavu/the-crypto-project/tree/master/cmd/demon
 
-### Build CLI
+#### Build CLI
 Navigate [to this folder](https://github.com/TheDhejavu/the-crypto-project/tree/master/cmd/demon) and run the below command to build the cli
 
     go build
@@ -309,7 +309,6 @@ The below resources and courses made this possible.
 
 - [Blockchain Basic, A Non-technical guide](https://www.goodreads.com/book/show/34137265-blockchain-basics)
 - [MIT 6.824 Distributed Systems (Spring 2020)](https://www.youtube.com/playlist?list=PLrw6a1wE39_tb2fErI4-WkMbsvGQk9_UB)
-- [Code a simple P2P blockchain in Go!](https://medium.com/@mycoralhealth/code-a-simple-p2p-blockchain-in-go-46662601f417)
 - [Advanced Blockchain Concepts for Beginners](https://medium.com/@mycoralhealth/advanced-blockchain-concepts-for-beginners-32887202afad)
 - [Tensor go programming ](https://www.youtube.com/playlist?list=PLJbE2Yu2zumCe9cO3SIyragJ8pLmVv0z9)
 - [MerkleTree](https://brilliant.org/wiki/merkle-tree/)

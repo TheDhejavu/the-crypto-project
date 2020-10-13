@@ -6,8 +6,8 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
-	"log"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/workspace/the-crypto-project/util/env"
 	"golang.org/x/crypto/ripemd160"
 )
@@ -27,6 +27,7 @@ type Wallet struct {
 
 // Validate Wallet Address
 func ValidateAddress(address string) bool {
+
 	if len(address) != 34 {
 		log.Fatalf("Invalid address")
 	}
@@ -72,7 +73,7 @@ func MakeWallet() *Wallet {
 }
 
 func PublicKeyHash(pubKey []byte) []byte {
-	//generate a hash using sha256 
+	//generate a hash using sha256
 	pubHash := sha256.Sum256(pubKey)
 
 	hasher := ripemd160.New()

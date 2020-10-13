@@ -6,11 +6,12 @@ import (
 	"encoding/gob"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"runtime"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var (

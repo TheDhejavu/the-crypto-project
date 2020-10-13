@@ -1,12 +1,22 @@
 package p2p
 
 import (
+	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"os"
+	"path"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/gdamore/tcell"
+
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/rivo/tview"
 )
@@ -22,33 +32,39 @@ type CLIUI struct {
 	app              *tview.Application
 	peersList        *tview.TextView
 
-	msgW    io.Writer
-	inputCh chan string
-	doneCh  chan struct{}
+	hostWindow *tview.TextView
+	inputCh    chan string
+	doneCh     chan struct{}
 }
 
-// NewCLIUI returns a new CLIUI struct that controls the text UI.
-// It won't actually do anything until you call Run().
+type Log struct {
+	Level string `json:"level"`
+	Msg   string `json:"msg"`
+	Time  string `json:"time"`
+}
+
+var (
+	_, b, _, _ = runtime.Caller(0)
+
+	// Root folder of this project
+	Root = filepath.Join(filepath.Dir(b), "../")
+)
+
 func NewCLIUI(generalChannel *Channel, miningChannel *Channel, fullNodesChannel *Channel) *CLIUI {
 	app := tview.NewApplication()
 
-	// make a text view to contain our chat messages
 	msgBox := tview.NewTextView()
 	msgBox.SetDynamicColors(true)
 	msgBox.SetBorder(true)
-	msgBox.SetTitle(fmt.Sprintf("Blockchain CLI UI"))
+	msgBox.SetTitle(fmt.Sprintf("HOST (%s)", strings.ToUpper(ShortID(generalChannel.self))))
 
-	// text views are io.Writers, but they don't automatically refresh.
-	// this sets a change handler to force the app to redraw when we get
-	// new messages to display.
 	msgBox.SetChangedFunc(func() {
 		app.Draw()
 	})
 
-	// an input field for typing messages into
 	inputCh := make(chan string, 32)
 	input := tview.NewInputField().
-		SetLabel(ShortID(generalChannel.self) + " > ").
+		SetLabel(strings.ToUpper(ShortID(generalChannel.self)) + " > ").
 		SetFieldWidth(0).
 		SetFieldBackgroundColor(tcell.ColorBlack)
 
@@ -90,8 +106,7 @@ func NewCLIUI(generalChannel *Channel, miningChannel *Channel, fullNodesChannel 
 
 	flex := tview.NewFlex().
 		SetDirection(tview.FlexRow).
-		AddItem(chatPanel, 0, 1, false).
-		AddItem(input, 1, 1, true)
+		AddItem(chatPanel, 0, 1, false)
 
 	app.SetRoot(flex, true)
 
@@ -101,13 +116,13 @@ func NewCLIUI(generalChannel *Channel, miningChannel *Channel, fullNodesChannel 
 		FullNodesChannel: fullNodesChannel,
 		app:              app,
 		peersList:        peersList,
-		msgW:             msgBox,
+		hostWindow:       msgBox,
 		inputCh:          inputCh,
 		doneCh:           make(chan struct{}, 1),
 	}
 }
 
-// Run starts the chat event loop in the background, then starts
+// Run starts the logs event loop in the background, then starts
 // the event loop for the text UI.
 func (ui *CLIUI) Run(net *Network) error {
 	go ui.handleEvents(net)
@@ -121,15 +136,15 @@ func (ui *CLIUI) end() {
 	ui.doneCh <- struct{}{}
 }
 
-// refreshPeers pulls the list of peers currently in the chat room and
+// refreshPeers pulls the list of peers currently in the channel and
 // displays the last 8 chars of their peer id in the Peers panel in the ui.
 func (ui *CLIUI) refreshPeers() {
 	peers := ui.GeneralChannel.ListPeers()
 	minerPeers := ui.MiningChannel.ListPeers()
 	idStrs := make([]string, len(peers))
 
-	// fmt.Println(peers)
 	for i, p := range peers {
+		peerId := strings.ToUpper(ShortID(p))
 		if len(minerPeers) != 0 {
 			isMiner := false
 			for _, minerPeer := range minerPeers {
@@ -139,12 +154,12 @@ func (ui *CLIUI) refreshPeers() {
 				}
 			}
 			if isMiner {
-				idStrs[i] = "MINER:" + ShortID(p)
+				idStrs[i] = "MINER: " + peerId
 			} else {
-				idStrs[i] = ShortID(p)
+				idStrs[i] = peerId
 			}
 		} else {
-			idStrs[i] = ShortID(p)
+			idStrs[i] = peerId
 		}
 	}
 
@@ -153,20 +168,20 @@ func (ui *CLIUI) refreshPeers() {
 }
 
 func (ui *CLIUI) displaySelfMessage(msg string) {
-	prompt := withColor("yellow", fmt.Sprintf("<%s>:", ShortID(ui.GeneralChannel.self)))
-	fmt.Fprintf(ui.msgW, "%s %s\n", prompt, msg)
+	prompt := withColor("yellow", fmt.Sprintf("<%s>:", strings.ToUpper(ShortID(ui.GeneralChannel.self))))
+	fmt.Fprintf(ui.hostWindow, "%s %s\n", prompt, msg)
 }
 
 func (ui *CLIUI) displayContent(content *ChannelContent) {
-	prompt := withColor("green", fmt.Sprintf("<%s>:", content.SendFrom))
-	fmt.Fprintf(ui.msgW, "%s %s\n", prompt, content.Message)
+	prompt := withColor("green", fmt.Sprintf("<%s>:", strings.ToUpper(content.SendFrom)))
+	fmt.Fprintf(ui.hostWindow, "%s %s\n", prompt, content.Message)
 }
 
 func (ui *CLIUI) HandleStream(net *Network, content *ChannelContent) {
-	ui.displayContent(content)
+	// ui.displayContent(content)
 	if content.Payload != nil {
 		command := BytesToCmd(content.Payload[:commandLength])
-		fmt.Printf("Received  %s command \n", command)
+		log.Infof("Received  %s command \n", command)
 
 		switch command {
 		case "block":
@@ -184,7 +199,77 @@ func (ui *CLIUI) HandleStream(net *Network, content *ChannelContent) {
 		case "version":
 			net.HandleVersion(content)
 		default:
-			fmt.Println("Unknown Command")
+			log.Warn("Unknown Command")
+		}
+	}
+}
+
+func (ui *CLIUI) readFromLogs(instanceId string) {
+	filename := "/logs/console.log"
+	if instanceId != "" {
+		filename = fmt.Sprintf("/logs/console_%s.log", instanceId)
+	}
+
+	logFile := path.Join(Root, filename)
+	e := ioutil.WriteFile(logFile, []byte(""), 0644)
+	if e != nil {
+		panic(e)
+	}
+	log.SetOutput(ioutil.Discard)
+
+	f, err := os.Open(logFile)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	r := bufio.NewReader(f)
+	info, err := f.Stat()
+	if err != nil {
+		panic(err)
+	}
+	logLevels := map[string]string{
+		"info":    "green",
+		"warning": "brown",
+		"error":   "red",
+		"fatal":   "red",
+	}
+	oldSize := info.Size()
+	for {
+		for line, prefix, err := r.ReadLine(); err != io.EOF; line, prefix, err = r.ReadLine() {
+			var data Log
+			if err := json.Unmarshal(line, &data); err != nil {
+				panic(err)
+			}
+			prompt := fmt.Sprintf("[%s]:", withColor(logLevels[data.Level], strings.ToUpper(data.Level)))
+			if prefix {
+				fmt.Fprintf(ui.hostWindow, "%s %s\n", prompt, data.Msg)
+			} else {
+				fmt.Fprintf(ui.hostWindow, "%s %s\n", prompt, data.Msg)
+			}
+			ui.hostWindow.ScrollToEnd()
+		}
+		pos, err := f.Seek(0, io.SeekCurrent)
+		if err != nil {
+			panic(err)
+		}
+		for {
+			time.Sleep(time.Second)
+			newinfo, err := f.Stat()
+			if err != nil {
+				panic(err)
+			}
+			newSize := newinfo.Size()
+			if newSize != oldSize {
+				if newSize < oldSize {
+					f.Seek(0, 0)
+				} else {
+					f.Seek(pos, io.SeekStart)
+				}
+				r = bufio.NewReader(f)
+				oldSize = newSize
+				break
+			}
 		}
 	}
 }
@@ -196,19 +281,23 @@ func (ui *CLIUI) handleEvents(net *Network) {
 	peerRefreshTicker := time.NewTicker(time.Second)
 	defer peerRefreshTicker.Stop()
 
+	go ui.readFromLogs(net.Blockchain.InstanceId)
+	log.Info("HOST ADDR: ", net.Host.Addrs())
+
 	for {
 		select {
 		case input := <-ui.inputCh:
 
 			err := ui.GeneralChannel.Publish(input, nil, "")
 			if err != nil {
-				fmt.Sprintln("publish error: %s", err)
+				log.Errorf("Publish error: %s", err)
 			}
 			ui.displaySelfMessage(input)
 
 		case <-peerRefreshTicker.C:
 			// refresh the list of peers in the chat room periodically
 			ui.refreshPeers()
+
 		case m := <-ui.GeneralChannel.Content:
 			ui.HandleStream(net, m)
 

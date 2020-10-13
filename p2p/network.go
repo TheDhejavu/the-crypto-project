@@ -8,7 +8,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -22,7 +21,6 @@ import (
 	yamux "github.com/libp2p/go-libp2p-yamux"
 	tcp "github.com/libp2p/go-tcp-transport"
 	ws "github.com/libp2p/go-ws-transport"
-	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/libp2p/go-libp2p-core/host"
@@ -161,11 +159,11 @@ func (net *Network) HandleBlocks(content *ChannelContent) {
 	} else {
 		lastBlock, err := net.Blockchain.GetBlock(net.Blockchain.LastHash)
 		if err != nil {
-			logrus.Info(err)
+			log.Info(err)
 		}
-		logrus.Info(block.Height)
+		log.Info(block.Height)
 		valid := block.IsBlockValid(lastBlock)
-		logrus.Info("Block validity:", strconv.FormatBool(valid))
+		log.Info("Block validity:", strconv.FormatBool(valid))
 		if valid {
 			net.Blockchain.AddBlock(block)
 
@@ -186,8 +184,8 @@ func (net *Network) HandleBlocks(content *ChannelContent) {
 		}
 	}
 
-	logrus.Printf("Added block %x \n", block.Hash)
-	logrus.Infof("Block in transit %d", len(blocksInTransit))
+	log.Infof("Added block %x \n", block.Hash)
+	log.Infof("Block in transit %d", len(blocksInTransit))
 
 	if len(blocksInTransit) > 0 {
 		blockHash := blocksInTransit[0]
@@ -257,7 +255,7 @@ func (net *Network) HandleInv(content *ChannelContent) {
 	if err != nil {
 		log.Panic(err)
 	}
-	fmt.Printf("Recieved inventory with %d %s \n", len(payload.Items), payload.Type)
+	log.Infof("Recieved inventory with %d %s \n", len(payload.Items), payload.Type)
 
 	if payload.Type == "block" {
 		if len(payload.Items) >= 1 {
@@ -274,7 +272,7 @@ func (net *Network) HandleInv(content *ChannelContent) {
 			}
 			blocksInTransit = newInTransit
 		} else {
-			logrus.Info("Empty block hashes")
+			log.Info("Empty block hashes")
 		}
 	}
 
@@ -310,7 +308,7 @@ func (net *Network) HandleGetBlocks(content *ChannelContent) {
 
 	chain := net.Blockchain.ContinueBlockchain()
 	blockHashes := chain.GetBlockHashes(payload.Height)
-	fmt.Println("LENGTH:", len(blockHashes))
+	log.Info("LENGTH:", len(blockHashes))
 	net.SendInv(payload.SendFrom, "block", blockHashes)
 }
 
@@ -339,7 +337,7 @@ func (net *Network) HandleVersion(content *ChannelContent) {
 
 	bestHeight := net.Blockchain.GetBestHeight()
 	otherHeight := payload.BestHeight
-	fmt.Println(bestHeight, otherHeight)
+	log.Info("BEST HEIGHT: ", bestHeight, " OTHER HEIGHT:", otherHeight)
 	if bestHeight < otherHeight {
 		net.SendGetBlocks(payload.SendFrom, bestHeight)
 	} else if bestHeight > otherHeight {
@@ -386,7 +384,7 @@ func (net *Network) HandleGetTxFromPool(content *ChannelContent) {
 	}
 
 	if len(memoryPool.Pending) >= payload.Count {
-		txs := memoryPool.GetPendingTransactions(payload.Count)
+		txs := memoryPool.GetTransactions(payload.Count)
 		net.SendTxPoolInv(payload.SendFrom, "tx", txs)
 	} else {
 		net.SendTxPoolInv(payload.SendFrom, "tx", [][]byte{})
@@ -407,7 +405,7 @@ func (net *Network) HandleTx(content *ChannelContent) {
 	txData := payload.Transaction
 	tx := blockchain.DeserializeTransaction(txData)
 
-	fmt.Printf("%s, %d", payload.SendFrom, len(memoryPool.Pending))
+	log.Infof("%s, %d", payload.SendFrom, len(memoryPool.Pending))
 	chain := net.Blockchain.ContinueBlockchain()
 
 	if chain.VerifyTransaction(&tx) {
@@ -415,7 +413,7 @@ func (net *Network) HandleTx(content *ChannelContent) {
 		if net.Miner {
 			//Move transaction to queued
 			memoryPool.Move(tx, "queued")
-			fmt.Println("MINING")
+			log.Info("MINING")
 			//Mine transaction instantly
 			net.MineTx(memoryPool.Queued)
 		}
@@ -581,7 +579,7 @@ func StartNode(chain *blockchain.Blockchain, listenPort, minerAddress string, mi
 		panic(err)
 	}
 	if err = ui.Run(network); err != nil {
-		printErr("error running text UI: %s", err)
+		log.Error("error running text UI: %s", err)
 	}
 }
 
@@ -672,9 +670,4 @@ func SetupDiscovery(ctx context.Context, host host.Host) error {
 	}
 
 	return nil
-}
-
-// printErr is like fmt.Printf, but writes to stderr.
-func printErr(m string, args ...interface{}) {
-	fmt.Fprintf(os.Stderr, m, args...)
 }

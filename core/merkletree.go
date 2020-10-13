@@ -2,7 +2,8 @@ package blockchain
 
 import (
 	"crypto/sha256"
-	"log"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type MerkleTree struct {

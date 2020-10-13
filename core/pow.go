@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
-	"fmt"
 	"math"
 	"math/big"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const Difficulty = 5
@@ -23,7 +24,7 @@ func NewProof(b *Block) *ProofOfWork {
 	target.Lsh(target, uint(256-Difficulty))
 
 	pow := &ProofOfWork{b, target}
-	fmt.Printf("target: %x\n", target)
+	log.Infof("Target: %x\n", target)
 
 	return pow
 }
@@ -54,11 +55,11 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 		info := pow.InitData(nonce)
 		hash = sha256.Sum256(info)
 
-		fmt.Printf("\r%x", hash)
+		log.Infof("Pow: \r%x", hash)
 		initHash.SetBytes(hash[:])
 
 		if initHash.Cmp(pow.Target) == -1 {
-			fmt.Println("\nFound!")
+			log.Info("Found!")
 			break
 		}
 	}

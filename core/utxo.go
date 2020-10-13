@@ -3,10 +3,9 @@ package blockchain
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
-	"log"
 
 	badger "github.com/dgraph-io/badger"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -43,7 +42,6 @@ func (u *UXTOSet) FindSpendableOutputs(pubKeyHash []byte, amount float64) (float
 
 			k = bytes.TrimPrefix(k, utxoPrefix)
 			txID := hex.EncodeToString(k)
-			fmt.Println(txID)
 
 			for outIdx, out := range outs.Outputs {
 				if out.IsLockWithKey(pubKeyHash) && accumulated < amount {

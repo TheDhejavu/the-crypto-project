@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -15,7 +14,7 @@ import (
 	"sync"
 
 	badger "github.com/dgraph-io/badger"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 // Blockchain struct such that lastHash represents the lastblock hash
@@ -58,7 +57,7 @@ func OpenBardgerDB(instanceId string) *badger.DB {
 	path := GetDatabasePath(instanceId)
 
 	// if DBExists(path) == false {
-	// 	fmt.Println("No Existing Blockchian DB found, create one!")
+	// 	log.Info("No Existing Blockchian DB found, create one!")
 	// 	runtime.Goexit()
 	// }
 
@@ -91,7 +90,7 @@ func (chain *Blockchain) ContinueBlockchain() *Blockchain {
 	if err != nil {
 		lastHash = nil
 	}
-	logrus.Infof("LastHash: %x", lastHash)
+	// log.Infof("LastHash: %x", lastHash)
 	return &Blockchain{lastHash, db, chain.InstanceId}
 }
 
@@ -102,7 +101,7 @@ func InitBlockchain(address string, instanceId string) *Blockchain {
 	path := GetDatabasePath(instanceId)
 
 	if DBExists(path) {
-		fmt.Println("Blockchain already exist")
+		log.Info("Blockchain already exist")
 		runtime.Goexit()
 	}
 	// Open the Badger database located in the /tmp/blocks directory.
@@ -115,7 +114,7 @@ func InitBlockchain(address string, instanceId string) *Blockchain {
 	//Read-Write Operations
 	err = db.Update(func(txn *badger.Txn) error {
 		cbtx := MinerTx(address, genesisData)
-		fmt.Println("No existing blockchain found")
+		log.Info("No existing blockchain found")
 		genesis := Genesis(cbtx)
 		err = txn.Set(genesis.Hash, genesis.Serialize())
 		Handle(err)
@@ -357,7 +356,7 @@ func (chain *Blockchain) FindTransaction(ID []byte) (Transaction, error) {
 			break
 		}
 	}
-	logrus.Error("Error: No Transaction with ID")
+	log.Error("Error: No Transaction with ID")
 
 	return Transaction{}, errors.New("No transaction with id")
 }
@@ -368,7 +367,7 @@ func (chain *Blockchain) GetTransaction(transaction *Transaction) map[string]Tra
 		// get all transaction with in.ID
 		tx, err := chain.FindTransaction(in.ID)
 		if err != nil {
-			logrus.Error("Error: Invalid Transaction Ewwww")
+			log.Error("Error: Invalid Transaction Ewwww")
 		}
 		Handle(err)
 		txs[hex.EncodeToString(tx.ID)] = tx

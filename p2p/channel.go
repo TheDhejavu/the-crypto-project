@@ -33,8 +33,7 @@ type ChannelContent struct {
 	Payload  []byte
 }
 
-// JoinChannel tries to subsChannelibe to the PubSub topic for the network, returning
-// a Channel on success.
+
 func JoinChannel(ctx context.Context, pub *pubsub.PubSub, selfID peer.ID, channelName string, subscribe bool) (*Channel, error) {
 	// join the pubsub topic
 	topic, err := pub.Join(topicName(channelName))
@@ -73,7 +72,7 @@ func (ch *Channel) ListPeers() []peer.ID {
 	return ch.pub.ListPeers(topicName(ch.channelName))
 }
 
-// Publish sends a message to the pubsub topic.
+
 func (channel *Channel) Publish(message string, payload []byte, SendTo string) error {
 	m := ChannelContent{
 		Message:  message,

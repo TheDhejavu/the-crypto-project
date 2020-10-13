@@ -10,10 +10,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"log"
 	"math/big"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/workspace/the-crypto-project/wallet"
 )
 
@@ -25,6 +25,7 @@ type Transaction struct {
 
 func (tx *Transaction) Serializer() []byte {
 	var encoded bytes.Buffer
+
 	encode := gob.NewEncoder(&encoded)
 	err := encode.Encode(tx)
 	Handle(err)
@@ -54,7 +55,7 @@ func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transac
 
 	for _, in := range tx.Inputs {
 		if prevTXs[hex.EncodeToString(in.ID)].ID == nil {
-			log.Panic("ERROR: Previous Transaction is not correct")
+			log.Fatal("ERROR: Previous Transaction is not correct")
 		}
 	}
 
@@ -140,7 +141,7 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 
 	for _, in := range tx.Inputs {
 		if prevTXs[hex.EncodeToString(in.ID)].ID == nil {
-			log.Panic("ERROR: Previous Transaction is not valid")
+			log.Fatal("ERROR: Previous Transaction is not valid")
 		}
 	}
 

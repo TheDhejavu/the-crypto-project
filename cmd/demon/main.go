@@ -3,11 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
 
-	"github.com/mattn/go-colorable"
 	log "github.com/sirupsen/logrus"
-	"github.com/snowzach/rotatefilehook"
 	"github.com/spf13/cobra"
 	"github.com/workspace/the-crypto-project/cmd/utils"
 	blockchain "github.com/workspace/the-crypto-project/core"
@@ -15,34 +12,6 @@ import (
 	"github.com/workspace/the-crypto-project/p2p"
 	"github.com/workspace/the-crypto-project/util/env"
 )
-
-func init() {
-	var logLevel = log.InfoLevel
-
-	rotateFileHook, err := rotatefilehook.NewRotateFileHook(rotatefilehook.RotateFileConfig{
-		Filename:   "../../logs/console.log",
-		MaxSize:    50, // megabytes
-		MaxBackups: 3,
-		MaxAge:     28, //days
-		Level:      logLevel,
-		Formatter: &log.JSONFormatter{
-			TimestampFormat: time.RFC822,
-		},
-	})
-
-	if err != nil {
-		log.Fatalf("Failed to initialize file rotate hook: %v", err)
-	}
-
-	log.SetLevel(logLevel)
-	log.SetOutput(colorable.NewColorableStdout())
-	log.SetFormatter(&log.TextFormatter{
-		ForceColors:     true,
-		FullTimestamp:   true,
-		TimestampFormat: time.RFC822,
-	})
-	log.AddHook(rotateFileHook)
-}
 
 func main() {
 	defer os.Exit(0)

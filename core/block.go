@@ -16,6 +16,7 @@ type Block struct {
 	Height       int
 	MerkleRoot   []byte
 	Difficulty   int
+	TxCount      int
 }
 
 // Use Merkle Tree to hash Transactions
@@ -40,6 +41,7 @@ func CreateBlock(txs []*Transaction, prevHash []byte, height int) *Block {
 		height,
 		[]byte{},
 		Difficulty,
+		len(txs),
 	}
 	pow := NewProof(block)
 	nonce, hash := pow.Run()
@@ -107,7 +109,8 @@ func ConstructJSON(buffer *bytes.Buffer, block *Block) {
 
 	buffer.WriteString(fmt.Sprintf("\"%s\":%d,", "Nonce", block.Nonce))
 
-	buffer.WriteString(fmt.Sprintf("\"%s\":\"%x\"", "MerkleRoot", block.MerkleRoot))
+	buffer.WriteString(fmt.Sprintf("\"%s\":\"%x\",", "MerkleRoot", block.MerkleRoot))
+	buffer.WriteString(fmt.Sprintf("\"%s\":%d", "TxCount", block.TxCount))
 	buffer.WriteString("}")
 }
 

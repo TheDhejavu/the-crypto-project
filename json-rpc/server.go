@@ -1,13 +1,13 @@
 package rpc
 
 import (
-	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"net/rpc"
 	"net/rpc/jsonrpc"
 	"os"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/workspace/the-crypto-project/cmd/utils"
 	blockchain "github.com/workspace/the-crypto-project/core"
@@ -49,7 +49,6 @@ func (api *API) GetBlockByHeight(args BlockArgs, data *blockchain.Block) error {
 }
 
 func (api *API) Send(args SendArgs, data *utils.SendResponse) error {
-	fmt.Println(args)
 	*data = api.cmd.Send(args.SendFrom, args.SendTo, args.Amount, args.Mine)
 	return nil
 }
@@ -80,7 +79,7 @@ func StartServer(cli *utils.CommandLine, rpcEnabled bool, rpcPort string, rpcAdd
 	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
 		io.WriteString(res, "RPC SERVER LIVE!")
 	})
-	log.Info("Serving rpc on port %s", port)
+	log.Infof("Serving rpc on port %s", port)
 
 	for {
 		conn, err := listener.Accept()

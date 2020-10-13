@@ -9,6 +9,7 @@ require (
 	github.com/ethereum/go-ethereum v1.9.21
 	github.com/gdamore/tcell v1.4.0
 	github.com/gorilla/mux v1.7.4 // indirect
+	github.com/hpcloud/tail v1.0.0
 	github.com/ipfs/go-log v1.0.4
 	github.com/joho/godotenv v1.3.0
 	github.com/libp2p/go-libp2p v0.11.0
@@ -31,6 +32,7 @@ require (
 	github.com/spf13/cobra v0.0.5
 	github.com/whyrusleeping/go-logging v0.0.1
 	golang.org/x/crypto v0.0.0-20200728195943-123391ffb6de
+	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/vrecan/death.v3 v3.0.1
 )
