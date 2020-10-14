@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -24,9 +25,15 @@ type HttpConn struct {
 	out io.Writer
 }
 
-func (c *HttpConn) Read(p []byte) (n int, err error)  { return c.in.Read(p) }
-func (c *HttpConn) Write(d []byte) (n int, err error) { return c.out.Write(d) }
-func (c *HttpConn) Close() error                      { return nil }
+func (conn *HttpConn) Read(p []byte) (n int, err error) {
+	return conn.in.Read(p)
+}
+func (conn *HttpConn) Write(d []byte) (n int, err error) {
+	return conn.out.Write(d)
+}
+func (conn *HttpConn) Close() error {
+	return nil
+}
 
 func (api *API) CreateWallet(args Args, address *string) error {
 	*address = api.cmd.CreateWallet()
@@ -70,7 +77,7 @@ func StartServer(cli *utils.CommandLine, rpcEnabled bool, rpcPort string, rpcAdd
 	checkError("Error registering API", err)
 	rpc.HandleHTTP()
 
-	tcpAddr, err := net.ResolveTCPAddr("tcp", rpcAddr+":"+port)
+	tcpAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%s", rpcAddr, port))
 	checkError("Listener error:", err)
 
 	listener, err := net.ListenTCP("tcp", tcpAddr)
