@@ -15,6 +15,10 @@ import (
 	appUtils "github.com/workspace/the-crypto-project/util/utils"
 )
 
+var (
+	port = "5000"
+)
+
 type API struct {
 	RPCEnabled bool
 	cmd        *utils.CommandLine
@@ -61,7 +65,6 @@ func (api *API) Send(args SendArgs, data *utils.SendResponse) error {
 }
 
 func StartServer(cli *utils.CommandLine, rpcEnabled bool, rpcPort string, rpcAddr string) {
-	var port = "5000"
 	if rpcPort != "" {
 		port = rpcPort
 	}

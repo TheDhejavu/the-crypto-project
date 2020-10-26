@@ -3,12 +3,13 @@ module github.com/workspace/the-crypto-project
 go 1.13
 
 require (
+	github.com/btcsuite/btcd v0.20.1-beta
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/dgraph-io/badger v1.6.1
 	github.com/dgraph-io/badger/v2 v2.0.3
 	github.com/ethereum/go-ethereum v1.9.21
 	github.com/gdamore/tcell v1.4.0
-	github.com/gorilla/mux v1.7.4 // indirect
+	github.com/gorilla/mux v1.7.4
 	github.com/hpcloud/tail v1.0.0
 	github.com/ipfs/go-log v1.0.4
 	github.com/joho/godotenv v1.3.0

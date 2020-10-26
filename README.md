@@ -29,7 +29,7 @@ This is a fully decentralized blockchain project that implements some of the maj
 | `./Binaries`| An on-demand Folder for executable E.G Wallet   |
 | `./cmd`    | CLI Scripts for interacting with the blockhain   |
 | `./wallet` | Wallet Source code.                              |
-| `./examples`| Code samples for API wrappers written in Go, Python, Typescript, Rust and JS E.T.C                                   |
+| `./examples`| Code samples for API wrappers written in Go, Python, Rust and JS E.T.C                                   |
 
 ### Blockchain
 Blockchain can be defined as a database that stores blocks, with every next block being linked to the previous one in form of a linked list and a cryptographically secure way so that it’s not possible to change anything in previous blocks, it is a decentralized distributed system of Nodes/Peers that works in a co-ordinated way. What are Distributed systems? this is a computing paradigm whereby two or more nodes work with each other in a coordinated fashion in order to achieve a common outcome and it's modeled in such a way that end users see it as a single logical platform. Distributed system are interestingly complex due to the ability of nodes to coordinate themselves properly. 
@@ -298,7 +298,7 @@ a command.
 
 ## Challenges
 
-The blockchain project doesn't handle [fork](https://en.wikipedia.org/wiki/Fork_(blockchain)) and it also lacks a proper memory pool implementation for nodes which in turns impact the ability to have more than one mining and fullnode in the system.
+This blockchain project doesn't handle [fork](https://en.wikipedia.org/wiki/Fork_(blockchain)) and it also lacks a proper memory pool implementation for nodes which in turns impact the ability to have more than one mining and fullnode in the system.
 ## TODO
 
 - Improve Memorypool and Mining implementation 

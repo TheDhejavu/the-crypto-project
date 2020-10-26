@@ -8,15 +8,15 @@ import (
 )
 
 type Block struct {
-	Timestamp    int64
-	Hash         []byte
-	PrevHash     []byte
-	Transactions []*Transaction
-	Nonce        int
-	Height       int
-	MerkleRoot   []byte
-	Difficulty   int
-	TxCount      int
+	Timestamp    int64          `json:"Timestamp"`
+	Hash         []byte         `json:"Hash"`
+	PrevHash     []byte         `json:"PrevHash"`
+	Transactions []*Transaction `json:"Transactions"`
+	Nonce        int            `json:"Nonce"`
+	Height       int            `json:"Height"`
+	MerkleRoot   []byte         `json:"MerkleRoot"`
+	Difficulty   int            `json:"Difficulty"`
+	TxCount      int            `json:"TxCount"`
 }
 
 // Use Merkle Tree to hash Transactions
