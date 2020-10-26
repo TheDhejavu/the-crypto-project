@@ -106,7 +106,7 @@ func StartServer(cli *utils.CommandLine, rpcEnabled bool, rpcPort string, rpcAdd
 				err := rpc.ServeRequest(serverCodec)
 				if err != nil {
 					log.Errorf("Error while serving JSON request: %v", err)
-					http.Error(w, "Error while serving JSON request, details have been logged.", 500)
+					http.Error(w, "Error while serving JSON request", 500)
 					return
 				}
 			}

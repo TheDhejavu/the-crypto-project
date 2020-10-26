@@ -3,3 +3,4 @@
 /_
 /cmd/utils/demon/demon.exe
 /.env
+/examples/rust/target
