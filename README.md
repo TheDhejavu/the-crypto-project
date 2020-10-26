@@ -1,7 +1,7 @@
 ![logo](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/cover.png)
 # The Crypto Project
 
-This is a blockchain project that implements some of the major feature of popular cryptocurrency project like Bitcoin and ethereum using go programming language. This an experimental project for learning purposes and it contains detailed overview of how blockchain works, **most importantly how this project works**. This project was inspired by [Go Ethereum](https://geth.ethereum.org/docs/) and [bitcoin](https://bitcoin.org)
+This is a fully decentralized blockchain project that implements some of the major feature of popular cryptocurrency project like Bitcoin and ethereum using go programming language. This an experimental project for learning purposes and it contains detailed overview of how blockchain works, **most importantly how this project works**. This project was inspired by [Go Ethereum](https://geth.ethereum.org/docs/) and [bitcoin](https://bitcoin.org)
 
 # Flow Diagram
 ![flow diagram](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/flow-diagram-the-crypto-project.png)
