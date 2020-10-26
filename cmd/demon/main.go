@@ -18,11 +18,12 @@ func main() {
 	var conf = env.New()
 	var address string
 	var instanceId string
-
+	
 	var rpcPort string
 	var rpcAddr string
 	var rpc bool
 
+    
 	cli := utils.CommandLine{
 		Blockchain: &blockchain.Blockchain{
 			Database:   nil,
