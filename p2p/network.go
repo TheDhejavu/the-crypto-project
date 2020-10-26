@@ -30,53 +30,6 @@ import (
 	appUtils "github.com/workspace/the-crypto-project/util/utils"
 )
 
-type Network struct {
-	Host             host.Host
-	GeneralChannel   *Channel
-	MiningChannel    *Channel
-	FullNodesChannel *Channel
-	Blockchain       *blockchain.Blockchain
-	Blocks           chan *blockchain.Block
-	Transactions     chan *blockchain.Transaction
-	Miner            bool
-}
-
-type Version struct {
-	Version    int
-	BestHeight int
-	SendFrom   string
-}
-
-type GetBlocks struct {
-	SendFrom string
-	Height   int
-}
-type Tx struct {
-	SendFrom    string
-	Transaction []byte
-}
-type Block struct {
-	SendFrom string
-	Block    []byte
-}
-
-type TxFromPool struct {
-	SendFrom string
-	Count    int
-}
-
-type GetData struct {
-	SendFrom string
-	Type     string
-	ID       []byte
-}
-
-type Inv struct {
-	SendFrom string
-	Type     string
-	Items    [][]byte
-}
-
 const (
 	version       = 1
 	commandLength = 20
@@ -94,36 +47,6 @@ var (
 		sync.WaitGroup{},
 	}
 )
-
-func CmdToBytes(cmd string) []byte {
-	var bytes [commandLength]byte
-	for i, c := range cmd {
-		bytes[i] = byte(c)
-	}
-	return bytes[:]
-}
-
-func BytesToCmd(bytes []byte) string {
-	var cmd []byte
-	for _, b := range bytes {
-		if b != byte(0) {
-			cmd = append(cmd, b)
-		}
-	}
-	return fmt.Sprintf("%s", cmd)
-}
-
-func GobEncode(data interface{}) []byte {
-	var buff bytes.Buffer
-
-	enc := gob.NewEncoder(&buff)
-	err := enc.Encode(data)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	return buff.Bytes()
-}
 
 func (net *Network) SendBlock(peerId string, b *blockchain.Block) {
 	data := Block{net.Host.ID().Pretty(), b.Serialize()}

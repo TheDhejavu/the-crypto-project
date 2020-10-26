@@ -21,10 +21,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-// CLIUI is a Text User Interface (TUI) for the node.
-// The Run method will draw the UI to the terminal in "fullsnodeeen"
-// mode. You can quit with Ctrl-C, or by typing "/quit" into the
-// chat prompt.
+// CLIUI is a Text User Interface (TUI) for Peers
 type CLIUI struct {
 	GeneralChannel   *Channel
 	MiningChannel    *Channel
@@ -68,7 +65,6 @@ func NewCLIUI(generalChannel *Channel, miningChannel *Channel, fullNodesChannel 
 		SetFieldWidth(0).
 		SetFieldBackgroundColor(tcell.ColorBlack)
 
-	// the done func is called when the user hits enter, or tabs out of the field
 	input.SetDoneFunc(func(key tcell.Key) {
 		if key != tcell.KeyEnter {
 			// we don't want to do anything if they just tabbed away
@@ -86,23 +82,19 @@ func NewCLIUI(generalChannel *Channel, miningChannel *Channel, fullNodesChannel 
 			return
 		}
 
-		// send the line onto the input chan and reset the field text
 		inputCh <- line
 		input.SetText("")
 	})
 
-	// make a text view to hold the list of peers in the room, updated by ui.refreshPeers()
+	
 	peersList := tview.NewTextView()
 	peersList.SetBorder(true)
 	peersList.SetTitle("Peers")
 
-	// chatPanel is a horizontal box with messages on the left and peers on the right
-	// the peers list takes 20 columns, and the messages take the remaining space
+
 	chatPanel := tview.NewFlex().
 		AddItem(msgBox, 0, 1, false).
 		AddItem(peersList, 20, 1, false)
-
-	// flex is a vertical box with the chatPanel on top and the input field at the bottom.
 
 	flex := tview.NewFlex().
 		SetDirection(tview.FlexRow).
