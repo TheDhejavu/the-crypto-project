@@ -298,7 +298,7 @@ a command.
 
 ## Challenges
 
-    The system doesn't handle [fork](https://en.wikipedia.org/wiki/Fork_(blockchain)) and it also lacks a proper memory pool implementation for nodes which in turns impact the ability to have more than one mining and fullnode in the system.
+The blockchain project doesn't handle [fork](https://en.wikipedia.org/wiki/Fork_(blockchain)) and it also lacks a proper memory pool implementation for nodes which in turns impact the ability to have more than one mining and fullnode in the system.
 ## TODO
 
 - Improve Memorypool and Mining implementation 
