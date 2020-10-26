@@ -59,7 +59,7 @@ Consensus  mechanism means to reach agreements among network nodes or systems. I
 
 ![Blocks](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/blocks.png)
 
-#### How we know that a block is valid ?
+#### How do we know that a block is valid ?
 We basically check for two things.
 1. We Check if the previous block referenced by the block exists and is valid.
 
@@ -222,15 +222,15 @@ This command creates the genesis block and initialize the blockchain. Instanceid
 
 As a Miner
 
-    ./demon startnode --port <PORT> --address <MINER_ADDRESS> --miner --instanceid <INSTANCE_ID> --rpc --rpcport 8889
+    ./demon startnode --port <PORT> --address <MINER_ADDRESS> --miner --instanceid <INSTANCE_ID> --rpc --rpcport <PORT
 
 As a fullnode
 
-    ./demon startnode --port <PORT> --fullnode --instanceid <INSTANCE_ID> --rpc --rpcport 5898
+    ./demon startnode --port <PORT> --fullnode --instanceid <INSTANCE_ID> --rpc --rpcport <PORT>
 
 As an Ordinary Node
 
-    ./demon startnode --instanceid <INSTANCE_ID> --rpc --rpcport 7789
+    ./demon startnode --instanceid <INSTANCE_ID> --rpc --rpcport <PORT>
 
 #### Node JSON-RPC server
 
@@ -299,10 +299,10 @@ a command.
 
 ## TODO
 
-- Improved Memorypool and Mining implementation
+- Improve Memorypool and Mining implementation 
 - Basic Virtual Machine **(Maybe)** 
 - Test Coverage
-- Improved Error Handling
+- Improve Error Handling
 
 ## References and Credits
 The below resources and courses made this possible.

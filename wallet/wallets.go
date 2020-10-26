@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/elliptic"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -33,14 +34,15 @@ func InitializeWallets(cwd bool) (*Wallets, error) {
 
 	return &wallets, err
 }
-func (ws *Wallets) GetWallet(address string) Wallet {
+func (ws *Wallets) GetWallet(address string) (Wallet, error) {
 	var wallet *Wallet
 	var ok bool
 	w := *ws
 	if wallet, ok = w.Wallets[address]; !ok {
-		log.Fatalf("Address does not exist")
+		return *new(Wallet), errors.New("Invalid address")
 	}
-	return *wallet
+
+	return *wallet, nil
 }
 
 func (ws *Wallets) AddWallet() string {

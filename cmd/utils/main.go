@@ -66,9 +66,9 @@ func (cli *CommandLine) UpdateInstance(InstanceId string, closeDbAlways bool) *C
 	return cli
 }
 func (cli *CommandLine) Send(from string, to string, amount float64, mineNow bool) SendResponse {
-
+	
 	if !wallet.ValidateAddress(from) {
-		log.Warn("sendFrom address is Invalid ")
+		log.Error("sendFrom address is Invalid ")
 		return SendResponse{
 			Error: &Error{
 				Code:    5028,
@@ -77,7 +77,7 @@ func (cli *CommandLine) Send(from string, to string, amount float64, mineNow boo
 		}
 	}
 	if !wallet.ValidateAddress(to) {
-		log.Warn("sendFrom address is Invalid ")
+		log.Error("sendFrom address is Invalid ")
 		return SendResponse{
 			Error: &Error{
 				Code:    5028,
@@ -85,6 +85,7 @@ func (cli *CommandLine) Send(from string, to string, amount float64, mineNow boo
 			},
 		}
 	}
+
 
 	chain := cli.Blockchain.ContinueBlockchain()
 	if cli.CloseDbAlways {
@@ -97,8 +98,17 @@ func (cli *CommandLine) Send(from string, to string, amount float64, mineNow boo
 		chain.Database.Close()
 		log.Panic(err)
 	}
-
-	wallet := wallets.GetWallet(from)
+	
+	wallet, err := wallets.GetWallet(from)
+	if err != nil {
+		log.Error("Please import sendfrom wallet into this Node")
+		return SendResponse{
+			Error: &Error{
+				Code:    5028,
+				Message: "Please import sendfrom wallet into this Node",
+			},
+		}
+	}
 
 	tx, err := blockchain.NewTransaction(&wallet, to, amount, &utxos)
 	if err != nil {
@@ -159,7 +169,7 @@ func (cli *CommandLine) ComputeUTXOs() {
 	utxos := blockchain.UXTOSet{chain}
 	utxos.Compute()
 	count := utxos.CountTransactions()
-	log.Info("Rebuild DONE!!!!, there are %d transactions in the utxos set", count)
+	log.Infof("Rebuild DONE!!!!, there are %d transactions in the utxos set", count)
 }
 func (cli *CommandLine) GetBalance(address string) BalanceResponse {
 	if !wallet.ValidateAddress(address) {
@@ -179,7 +189,7 @@ func (cli *CommandLine) GetBalance(address string) BalanceResponse {
 		balance += out.Value
 	}
 
-	log.Info("Balance of %s:%f\n", address, balance)
+	log.Infof("Balance of %s:%f\n", address, balance)
 
 	return BalanceResponse{
 		balance,

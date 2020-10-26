@@ -29,7 +29,7 @@ type Wallet struct {
 func ValidateAddress(address string) bool {
 
 	if len(address) != 34 {
-		log.Fatalf("Invalid address")
+		return false
 	}
 	//Convert the address to public key hash
 	fullHash := Base58Decode([]byte(address))

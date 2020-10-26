@@ -2,3 +2,4 @@
 /logs
 /_
 /cmd/utils/demon/demon.exe
+/.env

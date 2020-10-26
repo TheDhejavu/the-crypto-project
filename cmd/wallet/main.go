@@ -30,7 +30,7 @@ func main() {
 			wallets, _ := wallet.InitializeWallets(cwd)
 			address := wallets.AddWallet()
 			wallets.SaveFile(cwd)
-			w := wallets.GetWallet(address)
+			w , _ := wallets.GetWallet(address)
 			PrintWalletAddress(address, w)
 		},
 	}
@@ -46,7 +46,7 @@ func main() {
 				if !wallet.ValidateAddress(Address) {
 					log.Panic("Invalid address")
 				}
-				w = wallets.GetWallet(Address)
+				w , _ = wallets.GetWallet(Address)
 				PrintWalletAddress(Address, w)
 			} else {
 				count := 1

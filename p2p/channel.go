@@ -9,12 +9,8 @@ import (
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 )
 
-// ChannelBufSize is the number of incoming messages to buffer for each topic.
 const ChannelBufSize = 128
 
-// Channel represents a subsChanneliption to a single PubSub topic. Messages
-// can be published to the topic with Channel.Publish, and received
-// messages are pushed to the Messages channel.
 type Channel struct {
 	ctx   context.Context
 	pub   *pubsub.PubSub
@@ -33,15 +29,14 @@ type ChannelContent struct {
 	Payload  []byte
 }
 
-
 func JoinChannel(ctx context.Context, pub *pubsub.PubSub, selfID peer.ID, channelName string, subscribe bool) (*Channel, error) {
-	// join the pubsub topic
+
 	topic, err := pub.Join(topicName(channelName))
 	if err != nil {
 		return nil, err
 	}
 
-	// and subsChannelibe to it
+	
 	var sub *pubsub.Subscription
 
 	if subscribe {
@@ -64,14 +59,13 @@ func JoinChannel(ctx context.Context, pub *pubsub.PubSub, selfID peer.ID, channe
 	}
 
 	go Channel.readLoop()
-	
+
 	return Channel, nil
 }
 
 func (ch *Channel) ListPeers() []peer.ID {
 	return ch.pub.ListPeers(topicName(ch.channelName))
 }
-
 
 func (channel *Channel) Publish(message string, payload []byte, SendTo string) error {
 	m := ChannelContent{
