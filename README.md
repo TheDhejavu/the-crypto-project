@@ -75,7 +75,9 @@ The wallet system, comparable to a bank account, contains a pair of public and p
 #### NB: you can't spend your digital currency without your private key and once your private key is compromise, moving your money to a new wallet address is the best thing to do.
 
 
-The wallet system is independent of the blockchain network and it is built ontop of the `demon` Command line(the network default CLI) and also there is a dedicated executable file in the `binaries` folder coupled with basic commands for performing different actions like generating new wallet, listing existing wallets. 
+The wallet system is independent of the blockchain network and it is built ontop of the `demon` Command line(the network default CLI) and also there is a dedicated executable file in the `binaries` folder coupled with basic commands for performing different actions like generating new wallet, listing existing wallets.
+
+## NB: In order to perform any action that requires the address, it is important to use the cli command for generating wallets because the node or peer doesn't have access to the wallet generated outside of itself and there are no ways to import a wallet to a node just yet.  
 
 ##### Download https://github.com/TheDhejavu/the-crypto-project/tree/master/binaries/wallet.exe
 
@@ -157,6 +159,7 @@ Navigate [to this folder](https://github.com/TheDhejavu/the-crypto-project/tree/
 Generate new wallet
 
     ./demon wallet new
+
 
 List Addresses
 
@@ -268,7 +271,6 @@ Send
 Example
 
     curl -X POST -H "Content-Type: application/json" -d '{"id": 1 , "method": "API.Send", "params": [{"sendFrom":"1D214Jcep7x7zPphLGsLdS1hHaxnwTatCW","sendTo": "15ViKshPBH6SzKun1UwmHpbAKD2mKZNtBU", "amount":0.50, "mine": true}]}' http://localhost:5000/_jsonrpc
-
 
 #### Command Usage
 
