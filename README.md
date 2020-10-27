@@ -72,8 +72,6 @@ The wallet system, comparable to a bank account, contains a pair of public and p
 
 ![Wallet system](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/rsz_wallet.jpg)
 
-#### NB: you can't spend your digital currency without your private key and once your private key is compromise, moving your money to a new wallet address is the best thing to do.
-
 
 The wallet system is independent of the blockchain network and it is built ontop of the `demon` Command line(the network default CLI) and also there is a dedicated executable file in the `binaries` folder coupled with basic commands for performing different actions like generating new wallet, listing existing wallets.
 
