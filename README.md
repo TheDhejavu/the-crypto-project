@@ -11,6 +11,12 @@ This is a fully decentralized blockchain project that implements some of the maj
 - Networking: [libp2p-go ](https://docs.libp2p.io/)
 - Database: [BadgerDB](https://github.com/dgraph-io/badger) 
 
+## Demo 
+
+[Youtube](https://www.youtube.com/watch?v=TsiFQsxt6vs)
+
+[demo](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/demo.png)
+
 ## The Codebase
 - Blockchain
 - Nodes
