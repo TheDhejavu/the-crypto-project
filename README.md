@@ -13,7 +13,7 @@ This is a fully decentralized blockchain project that implements some of the maj
 
 ## Demo 
 
-[Youtube](https://www.youtube.com/watch?v=Kg0v6MdVs3I)
+[Youtube](https://www.youtube.com/watch?v=Kg0v6MdVs3I&t=2s)
 
 ![demo](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/demo.png)
 
