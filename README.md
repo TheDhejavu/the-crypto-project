@@ -15,7 +15,7 @@ This is a fully decentralized blockchain project that implements some of the maj
 
 [Youtube](https://www.youtube.com/watch?v=TsiFQsxt6vs)
 
-[demo](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/demo.png)
+![demo](https://github.com/TheDhejavu/the-crypto-project/blob/master/public/demo.png)
 
 ## The Codebase
 - Blockchain
